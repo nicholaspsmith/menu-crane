@@ -23,8 +23,14 @@ public enum PanelPlacement {
     /// A remembered top-left is used only while it's still on a currently connected screen's
     /// visible frame; otherwise (or if nothing was ever saved) the caller falls back to its own
     /// default placement. Pure — no AppKit, so this is unit-testable without a real screen.
+    ///
+    /// Bounds are inclusive on every edge: `CGRect.contains` is half-open (`x < maxX`,
+    /// `y < maxY`), which would forget a panel dropped flush against the menu bar — its saved
+    /// top is exactly `visibleFrame.maxY`.
     public static func decide(saved: CGPoint?, screens: [CGRect]) -> CGPoint? {
-        guard let saved, screens.contains(where: { $0.contains(saved) }) else { return nil }
+        guard let saved, screens.contains(where: { screen in
+            saved.x >= screen.minX && saved.x <= screen.maxX && saved.y >= screen.minY && saved.y <= screen.maxY
+        }) else { return nil }
         return saved
     }
 }

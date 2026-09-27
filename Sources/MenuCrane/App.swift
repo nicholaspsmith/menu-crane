@@ -25,7 +25,9 @@ final class App: NSObject, NSApplicationDelegate {
     private var settings: SettingsWindowController!
     private var aliasesWindow: AliasesWindowController?
     private var mood = CharacterIcon.CraneState.idle
-    private var grabbedUntil = Date.distantPast
+    /// The pending "grabbed" flash reverting itself; cancelled (not just overwritten) on a new
+    /// grab or a hide/show, so a stale revert never fires after the mood's already moved on.
+    private var grabRevert: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -72,22 +74,27 @@ final class App: NSObject, NSApplicationDelegate {
 
     private func wireMoods() {
         panel.onVisibilityChange = { [weak self] visible in
-            guard let self, Date() >= self.grabbedUntil else { return }
+            guard let self else { return }
+            self.grabRevert?.cancel()
+            self.grabRevert = nil
             self.setMood(visible ? .searching : .idle)
         }
         panel.onGrab = { [weak self] in
             guard let self else { return }
-            self.grabbedUntil = Date().addingTimeInterval(0.5)
+            self.grabRevert?.cancel()
             self.setMood(.grabbed)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            let revert = DispatchWorkItem { [weak self] in
                 guard let self else { return }
-                self.setMood(self.panel.isVisible ? .searching : .idle)
+                self.grabRevert = nil
+                self.setMood(self.panel.isVisible ? (self.panel.state.isMiss ? .miss : .searching) : .idle)
             }
+            self.grabRevert = revert
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: revert)
         }
         panel.state.$results.combineLatest(panel.state.$emoji)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                guard let self, self.panel.isVisible, Date() >= self.grabbedUntil else { return }
+                guard let self, self.panel.isVisible, self.grabRevert == nil else { return }
                 self.setMood(self.panel.state.isMiss ? .miss : .searching)
             }
             .store(in: &cancellables)
