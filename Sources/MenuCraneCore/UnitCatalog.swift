@@ -32,6 +32,10 @@ enum UnitCatalog {
     static let usCup = UnitVolume(symbol: "cup", converter: UnitConverterLinear(coefficient: 0.2365882365))
     static let feetPerSecond = UnitSpeed(symbol: "ft/s", converter: UnitConverterLinear(coefficient: 0.3048))
     static let feetPerSecondSquared = UnitAcceleration(symbol: "ft/s²", converter: UnitConverterLinear(coefficient: 0.3048))
+    // Precise km/h (Foundation uses rounded 0.277778); 1 km/h = 1000 m / 3600 s = 0.27777... m/s
+    static let kilometersPerHour = UnitSpeed(symbol: "km/h", converter: UnitConverterLinear(coefficient: 1000.0 / 3600.0))
+    // Standard gravity: 9.80665 m/s² (Foundation uses 9.81)
+    static let standardGravity = UnitAcceleration(symbol: "g-force", converter: UnitConverterLinear(coefficient: 9.80665))
 
     static let all: [UnitDef] = [
         // Temperature
@@ -93,7 +97,7 @@ enum UnitCatalog {
                 aliases: ["mph", "mi/h", "milesperhour"], usPartner: nil, metricPartner: "km/h"),
         UnitDef(symbol: "ft/s", unit: feetPerSecond, family: .us,
                 aliases: ["ft/s", "fps", "feetpersecond", "footpersecond"], usPartner: nil, metricPartner: "m/s"),
-        UnitDef(symbol: "km/h", unit: UnitSpeed.kilometersPerHour, family: .metric,
+        UnitDef(symbol: "km/h", unit: kilometersPerHour, family: .metric,
                 aliases: ["km/h", "kmh", "kph", "kmph", "kilometersperhour", "kilometresperhour"], usPartner: "mph", metricPartner: nil),
         UnitDef(symbol: "m/s", unit: UnitSpeed.metersPerSecond, family: .metric,
                 aliases: ["m/s", "mps", "meterspersecond", "metrespersecond"], usPartner: "mph", metricPartner: nil),
@@ -104,7 +108,7 @@ enum UnitCatalog {
                 aliases: ["m/s2", "mps2", "meterspersecondsquared", "metrespersecondsquared"], usPartner: "ft/s²", metricPartner: nil),
         UnitDef(symbol: "ft/s²", unit: feetPerSecondSquared, family: .us,
                 aliases: ["ft/s2", "fps2", "feetpersecondsquared"], usPartner: nil, metricPartner: "m/s²"),
-        UnitDef(symbol: "g-force", unit: UnitAcceleration.gravity, family: .neutral,
+        UnitDef(symbol: "g-force", unit: standardGravity, family: .neutral,
                 aliases: ["g-force", "gforce", "gs", "gee", "gees", "standardgravity"], usPartner: "ft/s²", metricPartner: "m/s²"),
     ]
 

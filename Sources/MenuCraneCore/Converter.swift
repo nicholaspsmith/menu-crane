@@ -45,7 +45,7 @@ public struct Converter: Sendable {
             fromDef = f; toDef = p
         }
         guard fromDef.symbol != toDef.symbol,
-              type(of: fromDef.unit) == type(of: toDef.unit) else { return nil }
+              type(of: fromDef.unit).baseUnit().symbol == type(of: toDef.unit).baseUnit().symbol else { return nil }
         let base = fromDef.unit.converter.baseUnitValue(fromValue: value)
         let result = toDef.unit.converter.value(fromBaseUnitValue: base)
         guard result.isFinite else { return nil }
