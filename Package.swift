@@ -10,8 +10,11 @@ let package = Package(
     products: [
         .library(name: "MenuCraneCore", targets: ["MenuCraneCore"]),
     ],
+    dependencies: [
+        .package(path: "../HotkeyKit"),
+    ],
     targets: [
-        .target(name: "MenuCraneCore"),
+        .target(name: "MenuCraneCore", dependencies: [.product(name: "HotkeyKit", package: "HotkeyKit")]),
         .testTarget(name: "MenuCraneCoreTests", dependencies: ["MenuCraneCore"]),
     ]
 )
