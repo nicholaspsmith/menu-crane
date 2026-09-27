@@ -162,10 +162,17 @@ command as the top row.
 
 - Default hotkey **⌘Space** (Spotlight's ⌘Space is already disabled on this Mac;
   Raycast must be quit). Changeable in Settings.
-- Panel opens horizontally centred, about one third from the top, on the screen
-  containing the mouse pointer. Empty field, no list until you type.
-- ⌘Space again, Esc on an empty query, or clicking elsewhere closes it. Focus returns
-  to the app you were in.
+- The panel is draggable by its background, and opens where it was last dragged
+  to (`PanelX`/`PanelTop` in `UserDefaults`) as long as the panel — 680 pt wide,
+  at least field + footer tall, hanging from that top-left — still overlaps a
+  connected screen's visible frame. Otherwise, or when nothing has been saved,
+  it opens horizontally centred, about one third from the top, on the screen
+  containing the mouse pointer. **menu ▸ Reset Panel Position** forgets the saved
+  position. Empty field, no list until you type.
+- ⌘Space again, Esc on an empty query, ⌘W, or clicking elsewhere closes it. Focus
+  returns to the app you were in.
+- The Settings and Emoji Aliases windows close with ⌘W (a hidden File ▸ Close
+  menu item) or Esc.
 
 ### 4.2 Look
 

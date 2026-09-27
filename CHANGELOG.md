@@ -1,0 +1,20 @@
+# Changelog
+
+Every push to `main` is a release. Before pushing, add a `## [X.Y.Z] - YYYY-MM-DD`
+section at the top with `- ` entries (minor for features, patch for fixes); if an
+`## [Unreleased]` section is waiting, turn it into that section. GitHub tags it
+and publishes the section as the release notes; a push or pull request
+without one is refused (`[no release]` in the tip commit is the only exception).
+Versions follow [Semantic Versioning](https://semver.org/). The full rule:
+[StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
+
+## [1.0.0] - 2026-09-27
+
+First release: Menu Crane replaces Raycast for launching apps, arithmetic, unit conversions and emoji.
+
+- ⌘Space opens a search panel over any app, including full-screen ones. It can be dragged by its background and reopens where you left it.
+- Apps rank by how well they match and how often you open them.
+- Math with `+ - * /` and parentheses; ↩ copies the answer.
+- Conversions for temperature, mass, volume, length, speed and acceleration, with a US Imperial / Metric setting for bare values.
+- Emoji search in any word order, your own aliases, recents first, and a default skin tone.
+- Mendoza the crane in the menu bar opens his bucket while you search and snaps it shut when you copy.
