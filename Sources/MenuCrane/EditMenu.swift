@@ -3,11 +3,16 @@
 
 import AppKit
 
-/// An LSUIElement app has no menu bar, so text fields get no ⌘C/⌘V/⌘A/⌘Z unless a main menu
-/// with these items exists. It is never shown.
+/// An LSUIElement app has no menu bar, so text fields get no ⌘C/⌘V/⌘A/⌘Z — and windows no ⌘W —
+/// unless a main menu with these items exists. It is never shown.
 enum EditMenu {
     static func install() {
         let main = NSMenu()
+        let fileItem = NSMenuItem()
+        let file = NSMenu(title: "File")
+        file.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        fileItem.submenu = file
+        main.addItem(fileItem)
         let editItem = NSMenuItem()
         let edit = NSMenu(title: "Edit")
         edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")

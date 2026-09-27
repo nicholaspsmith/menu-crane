@@ -98,7 +98,7 @@ final class AliasesWindowController {
 
     func show() {
         if window == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: AliasesView(model: model)))
+            let w = EscClosableWindow(contentViewController: NSHostingController(rootView: AliasesView(model: model)))
             w.title = "Emoji Aliases"
             w.setContentSize(NSSize(width: 820, height: 560))
             w.isReleasedWhenClosed = false

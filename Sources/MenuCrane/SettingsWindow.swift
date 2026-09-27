@@ -114,7 +114,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             // real intrinsic size instead of a guessed constant, the way AliasesWindowController's
             // explicit setContentSize does for its own (fixed-size) window.
             hosting.sizingOptions = [.preferredContentSize]
-            let w = NSWindow(contentViewController: hosting)
+            let w = EscClosableWindow(contentViewController: hosting)
             w.title = "Menu Crane Settings"
             w.styleMask.remove(.resizable)
             w.isReleasedWhenClosed = false

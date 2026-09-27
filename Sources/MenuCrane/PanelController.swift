@@ -217,6 +217,9 @@ final class PanelController: NSObject, NSTextFieldDelegate {
         if e.keyCode == 43 && !mods.contains(.shift) {                          // ⌘,
             hide(); onOpenSettings?(); return true
         }
+        if e.keyCode == 13 && !mods.contains(.shift) {                          // ⌘W
+            hide(); return true   // not the main menu's Close, which would close() the panel behind hide()'s back
+        }
         if state.mode == .main, !mods.contains(.shift), let n = Self.digitKeyCodes.firstIndex(of: e.keyCode) {   // ⌘1–9
             activate(index: n, alternate: false); return true
         }
