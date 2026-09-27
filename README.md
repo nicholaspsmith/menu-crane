@@ -13,10 +13,10 @@ emoji. Part of [Menubarn](https://widgets.nicksmith.software), built on
 ## Using it
 
 **⌘Space** opens the panel over whatever app is frontmost, including a
-full-screen one, on the screen your mouse is on. It opens where you last
-dragged it, or centred about a third down the screen if that spot has
-scrolled off-screen since. Drag anywhere on the panel's background to move
-it.
+full-screen one. Drag anywhere on the panel's background to move it; it
+opens where you last left it (as long as that spot is still on a connected
+screen). **menu ▸ Reset Panel Position** puts it back centred a third down
+on the screen with your mouse.
 
 | Key | Does |
 |---|---|
@@ -27,6 +27,8 @@ it.
 | ⌘1 … ⌘9 | Run that numbered row directly |
 | Esc | Clear the query, then close the panel |
 | ⌘, | Open Settings |
+
+The Settings and Emoji Aliases windows close with ⌘W or Esc.
 
 **Emoji.** Type `e` or `emoji` and press ↩ to open the grid — it always opens
 fresh, with your most recently used emoji first. ↩ or a click copies the
@@ -69,14 +71,15 @@ render custom rows like an emoji grid or live math.
 ./install.sh
 ```
 
-Builds `Menu Crane.app`, symlinks it into `~/Applications` and launches it.
-Needs sibling checkouts of [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit)
-and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit) next to this
-repo (`../StatusItemKit`, `../HotkeyKit`). No permissions are needed — v1
-uses no Accessibility APIs and makes no network calls at runtime. Enable
-**Start at Login** from Settings or the menu if you want it persistent, and
-set your own **Hotkey** there too (**Record…**, then press the shortcut you
-want; a red warning shows if it can't be registered).
+Builds `Menu Crane.app`, symlinks it into `~/Applications`, turns on
+**Start at Login** and launches it. Needs sibling checkouts of
+[StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) (0.9.0 or
+later) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit) next to
+this repo (`../StatusItemKit`, `../HotkeyKit`). No permissions are needed —
+v1 uses no Accessibility APIs and makes no network calls at runtime. Start at
+Login can be turned off again from Settings or the menu, and you can set your
+own **Hotkey** in Settings (**Record…**, then press the shortcut you want —
+it needs ⌘, ⌥, ⌃ or ⇧; a red warning shows if it can't be registered).
 
 ## Files
 
@@ -94,9 +97,10 @@ want; a red warning shows if it can't be registered).
 - Esc behaves correctly in both the main list and emoji mode.
 - `e` + ↩ opens the emoji grid.
 - A copied emoji pastes correctly into Messages, Slack and a terminal.
-- The hotkey-conflict warning appears while Raycast is running.
+- The hotkey-conflict warning appears while another app holds the shortcut.
 - Drag the panel somewhere else, reopen it (⌘Space twice), and confirm it
-  comes back where you left it.
+  comes back where you left it; **menu ▸ Reset Panel Position** re-centres it.
+- ⌘W and Esc close the Settings and Emoji Aliases windows.
 - Settings ▸ **Record…** a new hotkey and confirm it fires (and the old one
   no longer does).
 - Sort a column in the Emoji Aliases window (**Edit Emoji Aliases…**).

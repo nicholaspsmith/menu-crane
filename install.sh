@@ -31,19 +31,18 @@ echo "Linked $HOME/Applications/$APP_NAME -> $SRC_DIR/build/$APP_NAME"
 # to run the installed binary rather than call launchctl.
 if "$HOME/Applications/$APP_NAME/Contents/MacOS/MenuCrane" --login on >/dev/null; then
     echo "Start at Login: on"
+    LOGIN_LINE="Start at Login was turned on, so it comes back after a restart."
 else
     echo "Start at Login: could not register (turn it on from the menu)" >&2
+    LOGIN_LINE="Start at Login could not be turned on — use menu ▸ Start at Login."
 fi
 
 open "$HOME/Applications/$APP_NAME"
 
-cat <<'EOF'
+cat <<EOF
 
 Menu Crane is now running in the menu bar.
 
-Menu Crane is a ⌘Space launcher for apps, math, unit conversions and emoji.
-This build is a skeleton: the global hotkey isn't wired up yet, so use the
-menu-bar icon for now — it shows Start at Login and the running version.
-
-Optional: menu ▸ Start at Login.
+Press ⌘Space to open Menu Crane: apps, math, unit conversions and emoji.
+$LOGIN_LINE
 EOF
