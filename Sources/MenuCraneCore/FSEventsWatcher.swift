@@ -27,7 +27,10 @@ public final class FSEventsWatcher {
         }
         guard let s = FSEventStreamCreate(nil, callback, &ctx, paths as CFArray,
                                           FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency,
-                                          FSEventStreamCreateFlags(kFSEventStreamCreateFlagNone)) else { return }
+                                          FSEventStreamCreateFlags(kFSEventStreamCreateFlagNone)) else {
+            coreLog.error("FSEvents stream could not be created for \(self.paths.joined(separator: ", "), privacy: .public)")
+            return
+        }
         FSEventStreamSetDispatchQueue(s, .main)
         FSEventStreamStart(s)
         stream = s
