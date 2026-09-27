@@ -14,15 +14,13 @@
 
 - Repo `~/Code/menu-crane`; product `MenuCrane`; display name `Menu Crane`; bundle id `com.nicholaspsmith.MenuCrane`; log subsystem `com.nicholaspsmith.MenuCrane`.
 - `platforms: [.macOS(.v13)]`, `// swift-tools-version:5.9`.
-- Every source file starts with the MPL-2.0 header used across Menubarn:
+- **License: MIT** (`LICENSE` already in the repo). Every source file starts with:
   ```
-  // This Source Code Form is subject to the terms of the Mozilla Public
-  // License, v. 2.0. If a copy of the MPL was not distributed with this
-  // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-  //
+  // SPDX-License-Identifier: MIT
   // Copyright (c) 2026 Nicholas Smith
   ```
-  (`#` comment form for shell/Python.)
+  (`#` comment form for shell/Python.) Wherever a step below says "MPL header", use this header.
+- The public repo `github.com/nicholaspsmith/menu-crane` already exists with a stub `README.md`; Task 18 fills the README out rather than creating it.
 - v1 needs **no Accessibility permission** and makes **no network calls at runtime**.
 - One keystroke's query across all providers: **< 5 ms** (release build).
 - Stored data lives in `~/Library/Application Support/MenuCrane/` (`aliases.json`, `usage.json`); settings in `UserDefaults`; all file writes atomic.
@@ -2603,7 +2601,7 @@ cd ~/Code/widgets.nicksmith.software && git add art/glyphs site/img/glyphs && gi
 
 **Files:**
 - Modify: `Package.swift`
-- Create: `Resources/Info.plist`, `scripts/build-app.sh`, `install.sh`, `LICENSE`, `Sources/MenuCrane/main.swift`, `Sources/MenuCrane/App.swift`
+- Create: `Resources/Info.plist`, `scripts/build-app.sh`, `install.sh`, `Sources/MenuCrane/main.swift`, `Sources/MenuCrane/App.swift`
 
 **Interfaces:**
 - Consumes: StatusItemKit `StatusItemController`, `YieldClient`, `LoginItem`, `LoginCLI`, `AppVersion`, `CharacterIcon.menuCrane`.
@@ -2677,9 +2675,7 @@ cd "$(dirname "$0")/.."
 exec ../StatusItemKit/scripts/make-app.sh MenuCrane "Menu Crane"
 ```
 
-`install.sh`: copy `~/Code/keylight-menubar/install.sh` and change `APP_NAME="KeyLight.app"` → `APP_NAME="Menu Crane.app"`, the comment's app name, and the login line's binary path to `"$HOME/Applications/$APP_NAME/Contents/MacOS/MenuCrane"`.
-
-`LICENSE`: `cp ~/Code/keylight-menubar/LICENSE LICENSE`.
+`install.sh`: copy `~/Code/keylight-menubar/install.sh`, replace its MPL header with the MIT header, and change `APP_NAME="KeyLight.app"` → `APP_NAME="Menu Crane.app"`, the comment's app name, and the login line's binary path to `"$HOME/Applications/$APP_NAME/Contents/MacOS/MenuCrane"`.
 
 Run: `chmod +x scripts/build-app.sh install.sh`
 
@@ -4149,7 +4145,7 @@ git add -A && git commit -m "feat: Mendoza's moods in the menu bar and the Icon 
 ### Task 18: Artwork, docs, site and release
 
 **Files:**
-- Create: `scripts/make-icon.sh`, `Resources/bundle/AppIcon.icns`, `README.md`, `CHANGELOG.md`, `.github/workflows/release.yml`, `docs/menubar-icon.png` (from render-glyphs)
+- Create: `scripts/make-icon.sh`, `Resources/bundle/AppIcon.icns`, `CHANGELOG.md`, `.github/workflows/release.yml`; Modify: `README.md` (stub → full), `docs/menubar-icon.png` (from render-glyphs)
 - Modify (site repo): `art/prompts.json`, `site/img/mascots/menu-crane.png`, `site/index.html`, `site/apps/menu-crane/index.html`
 - Modify: `~/.claude/CLAUDE.md` (app list)
 
@@ -4185,7 +4181,7 @@ Expected: Finder shows Mendoza as `Menu Crane.app`'s icon (`qlmanage -t -s 256 "
 7. **Files** — `~/Library/Application Support/MenuCrane/aliases.json` (hand-editable) and `usage.json`.
 8. **Manual checklist** — spec §8's list.
 9. **Updating emoji** — `scripts/update-emoji-data.sh` with `EMOJI_VERSION` / `CLDR_TAG`.
-10. License (MPL-2.0).
+10. License (MIT).
 
 - [ ] **Step 3: Changelog and release workflow**
 
@@ -4223,9 +4219,9 @@ In `~/.claude/CLAUDE.md`, in the StatusItemKit paragraph: change "Eleven run as 
 
 Stop and ask Nick to confirm each of these outward-facing steps before running it:
 1. Push StatusItemKit (release 0.9.0): `cd ~/Code/StatusItemKit && git switch main && git merge --ff-only feature/menu-crane-glyph && git push`.
-2. Create the public repo without pushing: `cd ~/Code/menu-crane && gh repo create nicholaspsmith/menu-crane --public --source=. --remote=origin --description "A ⌘Space launcher for apps, math, conversions and emoji — Menubarn"`.
+2. (The public repo already exists.)
 3. Arm the release rule: `~/Code/StatusItemKit/scripts/release/adopt.sh menu-crane` (sets the pre-push hook and branch protection; it creates nothing that isn't already committed).
-4. Delete the local dev tag and push (this is release v1.0.0): `git tag -d v0.0.0-dev && git push -u origin main`.
+4. Delete the local dev tag and push (this is release v1.0.0): `git tag -d v0.0.0-dev && git push origin main`.
 5. After CI tags it: `git pull --tags && ./install.sh` — the menu's Version row reads `1.0.0`.
 6. Push the site repo and deploy: `cd ~/Code/widgets.nicksmith.software && git push && npm run deploy`.
 
