@@ -44,7 +44,7 @@ final class SettingsModel: ObservableObject {
             self.recordTimeout = nil
             self.recording = false
             guard self.isWindowKey() else { return }   // the window lost key status mid-capture
-            guard !t.modifiers.isEmpty else { self.hotkeyError = "Add at least one modifier (⌘, ⌥, ⌃ or ⇧)."; return }
+            guard HotkeySettings.hasRealModifier(t.modifiers) else { self.hotkeyError = "Add at least one modifier (⌘, ⌥, ⌃ or ⇧)."; return }
             let result = self.onHotkey(t)
             self.trigger = result.trigger   // whatever App actually adopted, not necessarily `t`
             self.hotkeyError = result.error

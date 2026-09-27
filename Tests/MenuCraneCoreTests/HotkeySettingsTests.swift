@@ -28,6 +28,29 @@ final class HotkeySettingsTests: XCTestCase {
         XCTAssertEqual(HotkeySettings.load(from: defaults), HotkeySettings.defaultTrigger)
     }
 
+    /// macOS sets fn on arrows, Home/End, PgUp/PgDn and forward-delete, so fn alone must not
+    /// count as a modifier — a saved "fn+↓" would register a bare ↓ system-wide.
+    func testFnOnlyModifiersFallBackToDefault() {
+        defaults.set(125, forKey: HotkeySettings.keyCodeKey)
+        defaults.set(Modifiers.fn.rawValue, forKey: HotkeySettings.modifiersKey)
+        XCTAssertEqual(HotkeySettings.load(from: defaults), HotkeySettings.defaultTrigger)
+    }
+
+    func testOutOfRangeKeyCodeFallsBackToDefault() {
+        defaults.set(70_000, forKey: HotkeySettings.keyCodeKey)
+        defaults.set(Modifiers.command.rawValue, forKey: HotkeySettings.modifiersKey)
+        XCTAssertEqual(HotkeySettings.load(from: defaults), HotkeySettings.defaultTrigger)
+        defaults.set(-1, forKey: HotkeySettings.keyCodeKey)
+        XCTAssertEqual(HotkeySettings.load(from: defaults), HotkeySettings.defaultTrigger)
+    }
+
+    func testHasRealModifierIgnoresFn() {
+        XCTAssertFalse(HotkeySettings.hasRealModifier([]))
+        XCTAssertFalse(HotkeySettings.hasRealModifier([.fn]))
+        XCTAssertTrue(HotkeySettings.hasRealModifier([.fn, .control]))
+        XCTAssertTrue(HotkeySettings.hasRealModifier([.option]))
+    }
+
     func testDescribe() {
         XCTAssertEqual(TriggerText.describe(.key(49, [.command])), "⌘Space")
         XCTAssertEqual(TriggerText.describe(.key(40, [.command, .shift, .option, .control])), "⌃⌥⇧⌘K")

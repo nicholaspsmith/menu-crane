@@ -10,13 +10,19 @@ public enum HotkeySettings {
     public static let modifiersKey = "HotkeyModifiers"
     public static let defaultTrigger = Trigger.key(49, [.command])   // ⌘Space
 
-    /// The saved hotkey; a bare key with no modifier is refused (it would eat normal typing).
+    /// The saved hotkey; a bare key with no real modifier is refused (it would eat normal
+    /// typing), as is a key code that doesn't fit a `CGKeyCode`.
     public static func load(from defaults: UserDefaults) -> Trigger {
-        guard defaults.object(forKey: keyCodeKey) != nil else { return defaultTrigger }
+        guard defaults.object(forKey: keyCodeKey) != nil,
+              let code = CGKeyCode(exactly: defaults.integer(forKey: keyCodeKey)) else { return defaultTrigger }
         let mods = Modifiers(rawValue: defaults.integer(forKey: modifiersKey))
-        guard !mods.isEmpty else { return defaultTrigger }
-        return .key(CGKeyCode(defaults.integer(forKey: keyCodeKey)), mods)
+        guard hasRealModifier(mods) else { return defaultTrigger }
+        return .key(code, mods)
     }
+
+    /// Whether `mods` holds ⌘, ⌥, ⌃ or ⇧. fn alone doesn't count: macOS sets it on the arrows,
+    /// Home/End, PgUp/PgDn and forward-delete, so "fn+↓" would register a bare ↓ system-wide.
+    public static func hasRealModifier(_ mods: Modifiers) -> Bool { !mods.subtracting(.fn).isEmpty }
 
     public static func save(_ trigger: Trigger, to defaults: UserDefaults) {
         guard case let .key(code, mods) = trigger else { return }
