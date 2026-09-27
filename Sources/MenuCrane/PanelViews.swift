@@ -5,7 +5,7 @@ import MenuCraneCore
 import SwiftUI
 
 enum PanelMetrics {
-    static let width: CGFloat = 680
+    static let width: CGFloat = PanelPlacement.panelWidth
     static let fieldHeight: CGFloat = 56
     static let rowHeight: CGFloat = 44
     static let footerHeight: CGFloat = 28

@@ -20,17 +20,26 @@ public enum PanelPlacement {
         defaults.set(Double(point.y), forKey: topKey)
     }
 
-    /// A remembered top-left is used only while it's still on a currently connected screen's
-    /// visible frame; otherwise (or if nothing was ever saved) the caller falls back to its own
-    /// default placement. Pure — no AppKit, so this is unit-testable without a real screen.
-    ///
-    /// Bounds are inclusive on every edge: `CGRect.contains` is half-open (`x < maxX`,
-    /// `y < maxY`), which would forget a panel dropped flush against the menu bar — its saved
-    /// top is exactly `visibleFrame.maxY`.
+    /// Forget the remembered position (menu ▸ Reset Panel Position).
+    public static func clear(from defaults: UserDefaults) {
+        defaults.removeObject(forKey: xKey)
+        defaults.removeObject(forKey: topKey)
+    }
+
+    /// The panel's width and its smallest height (search field + footer, no results).
+    public static let panelWidth: CGFloat = 680
+    public static let minPanelHeight: CGFloat = 56 + 28
+
+    /// A remembered top-left is used only while the panel it places — `panelWidth` wide and at
+    /// least `minPanelHeight` tall, hanging down from that point — overlaps a currently
+    /// connected screen's visible frame; otherwise (or if nothing was ever saved) the caller
+    /// falls back to its own default placement. Checking the panel's rect rather than the point
+    /// alone rejects a point on a screen's bottom edge (the panel would sit entirely below it).
+    /// Pure — no AppKit, so this is unit-testable without a real screen.
     public static func decide(saved: CGPoint?, screens: [CGRect]) -> CGPoint? {
-        guard let saved, screens.contains(where: { screen in
-            saved.x >= screen.minX && saved.x <= screen.maxX && saved.y >= screen.minY && saved.y <= screen.maxY
-        }) else { return nil }
+        guard let saved else { return nil }
+        let panel = CGRect(x: saved.x, y: saved.y - minPanelHeight, width: panelWidth, height: minPanelHeight)
+        guard screens.contains(where: { $0.intersects(panel) }) else { return nil }
         return saved
     }
 }

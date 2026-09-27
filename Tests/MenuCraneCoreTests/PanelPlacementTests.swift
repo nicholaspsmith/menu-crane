@@ -44,6 +44,42 @@ final class PanelPlacementTests: XCTestCase {
         XCTAssertEqual(PanelPlacement.decide(saved: saved, screens: screens), saved)
     }
 
+    /// A top-left on the screen's bottom edge would put the whole panel below the screen.
+    func testSavedPointOnTheBottomEdgeIsRejected() {
+        let saved = CGPoint(x: 100, y: 0)
+        let screens = [CGRect(x: 0, y: 0, width: 1440, height: 900)]
+        XCTAssertNil(PanelPlacement.decide(saved: saved, screens: screens))
+    }
+
+    /// Left of the screen by more than the panel's width: the 680-pt panel can't reach it.
+    func testSavedPointWhosePanelMissesEveryScreenIsRejected() {
+        let saved = CGPoint(x: -700, y: 500)
+        let screens = [CGRect(x: 0, y: 0, width: 1440, height: 900)]
+        XCTAssertNil(PanelPlacement.decide(saved: saved, screens: screens))
+    }
+
+    /// Top-left just off the left edge, but most of the panel is still on screen and draggable.
+    func testSavedPointWhosePanelOverlapsAScreenIsUsed() {
+        let saved = CGPoint(x: -300, y: 500)
+        let screens = [CGRect(x: 0, y: 0, width: 1440, height: 900)]
+        XCTAssertEqual(PanelPlacement.decide(saved: saved, screens: screens), saved)
+    }
+
+    /// Top edge above the screen, but the panel's field still hangs down into it.
+    func testSavedPointSlightlyAboveTheScreenIsUsed() {
+        let saved = CGPoint(x: 100, y: 950)
+        let screens = [CGRect(x: 0, y: 0, width: 1440, height: 900)]
+        XCTAssertEqual(PanelPlacement.decide(saved: saved, screens: screens), saved)
+    }
+
+    func testClearForgetsTheSavedPoint() {
+        PanelPlacement.save(CGPoint(x: 1, y: 2), to: defaults)
+        PanelPlacement.clear(from: defaults)
+        XCTAssertNil(PanelPlacement.load(from: defaults))
+        XCTAssertNil(defaults.object(forKey: PanelPlacement.xKey))
+        XCTAssertNil(defaults.object(forKey: PanelPlacement.topKey))
+    }
+
     func testRoundTripThroughUserDefaults() {
         XCTAssertNil(PanelPlacement.load(from: defaults))
         let point = CGPoint(x: 42, y: 88)

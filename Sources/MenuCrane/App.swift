@@ -208,6 +208,7 @@ final class App: NSObject, NSApplicationDelegate {
         }
         menu.addItem(menuItem("Open Menu Crane (\(TriggerText.describe(trigger)))", #selector(openPanel)))
         menu.addItem(menuItem("Settings…", #selector(openSettings), key: ","))
+        menu.addItem(menuItem("Reset Panel Position", #selector(resetPanelPosition)))
         menu.addItem(.separator())
         let login = menuItem("Start at Login", #selector(toggleLogin))
         login.state = LoginItem.isEnabled ? .on : .off
@@ -244,6 +245,9 @@ final class App: NSObject, NSApplicationDelegate {
         settings.model.hotkeyError = hotkey.failure
         settings.show()
     }
+    /// Forget the dragged-to position; the next summon opens centered a third down the screen
+    /// under the mouse.
+    @objc private func resetPanelPosition() { PanelPlacement.clear(from: .standard) }
     @objc private func toggleLogin() { LoginItem.toggle() }
     @objc private func quit() { NSApp.terminate(nil) }
 }
