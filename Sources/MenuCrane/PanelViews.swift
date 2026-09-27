@@ -15,12 +15,18 @@ enum PanelMetrics {
 
 struct PanelBody: View {
     @ObservedObject var state: PanelState
+    @ObservedObject var ui: EmojiUI
     let icons: IconCache
     let onClick: (Int) -> Void
+    let onBack: () -> Void
+    let onPick: (EmojiHit) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            if !state.results.isEmpty {
+            if state.mode == .emoji {
+                Divider()
+                EmojiGridView(state: state, ui: ui, onBack: onBack, onPick: onPick)
+            } else if !state.results.isEmpty {
                 Divider()
                 ResultListView(state: state, icons: icons, onClick: onClick)
             }

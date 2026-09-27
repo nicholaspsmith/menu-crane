@@ -17,6 +17,11 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var anchorTop: CGFloat = 0
     private var anchorX: CGFloat = 0
+    /// The close that follows a copy; cancelled if the panel is summoned again before it fires.
+    private var pendingHide: DispatchWorkItem?
+    /// Set while `hide()` runs, so the resignKey that `orderOut` triggers doesn't hide (and notify) twice.
+    private var hiding = false
+    let emojiUI = EmojiUI()
 
     var onVisibilityChange: ((Bool) -> Void)?
     var onGrab: (() -> Void)?
@@ -32,6 +37,7 @@ final class PanelController: NSObject, NSTextFieldDelegate {
         self.index = index
         panel = CranePanel(width: PanelMetrics.width, height: PanelMetrics.fieldHeight + PanelMetrics.footerHeight)
         super.init()
+        emojiUI.onClose = { [weak self] in self?.focusField() }
 
         let effect = NSVisualEffectView()
         effect.material = .popover
@@ -77,16 +83,24 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     static let mainPlaceholder = "Search apps, emoji, math, units…"
     static let emojiPlaceholder = "Search emoji…"
 
-    /// The body view; Task 15 swaps in the emoji grid for emoji mode.
     func makeBody() -> AnyView {
-        AnyView(PanelBody(state: state, icons: icons, onClick: { [weak self] i in self?.activate(index: i, alternate: false) }))
+        AnyView(PanelBody(
+            state: state, ui: emojiUI, icons: icons,
+            onClick: { [weak self] i in self?.activate(index: i, alternate: false) },
+            onBack: { [weak self] in self?.state.backToMain(); self?.syncField(); self?.focusField() },
+            onPick: { [weak self] hit in self?.activateEmoji?(hit) }))
     }
+
+    func focusField() { panel.makeFirstResponder(field) }
 
     var isVisible: Bool { panel.isVisible }
     func toggle() { isVisible ? hide() : show() }
 
     func show() {
+        pendingHide?.cancel()
+        pendingHide = nil
         state.reset()
+        emojiUI.editing = nil
         syncField()
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
@@ -100,7 +114,11 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     }
 
     func hide() {
-        guard panel.isVisible else { return }
+        guard panel.isVisible, !hiding else { return }
+        hiding = true
+        defer { hiding = false }
+        pendingHide?.cancel()
+        pendingHide = nil
         panel.orderOut(nil)
         onVisibilityChange?(false)
     }
@@ -144,6 +162,7 @@ final class PanelController: NSObject, NSTextFieldDelegate {
         case #selector(NSResponder.insertNewline(_:)):
             activateSelection(alternate: false); return true
         case #selector(NSResponder.cancelOperation(_:)):
+            if emojiUI.editing != nil { emojiUI.editing = nil; focusField(); return true }
             switch state.escape() {
             case .close: hide()
             case .clearedQuery, .backToMain: syncField()
@@ -166,13 +185,16 @@ final class PanelController: NSObject, NSTextFieldDelegate {
         if e.keyCode == 43 && !mods.contains(.shift) {                          // ⌘,
             hide(); onOpenSettings?(); return true
         }
-        if state.mode == .main, !mods.contains(.shift),
-           let ch = e.charactersIgnoringModifiers, let n = Int(ch), (1...9).contains(n) {
-            activate(index: n - 1, alternate: false); return true
+        if state.mode == .main, !mods.contains(.shift), let n = Self.digitKeyCodes.firstIndex(of: e.keyCode) {   // ⌘1–9
+            activate(index: n, alternate: false); return true
         }
         if state.mode == .emoji, let handler = emojiKeyHandler, handler(e) { return true }
         return false
     }
+
+    /// ANSI key codes for the digit row 1–9. Key codes, not characters, so ⌘1–9 also work on
+    /// layouts (AZERTY) where the unshifted digit keys type something else.
+    static let digitKeyCodes: [UInt16] = [18, 19, 20, 21, 23, 22, 26, 28, 25]
 
     // MARK: - Actions
 
@@ -212,6 +234,12 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     func flashCopied() {
         state.footerMessage = "Copied"
         onGrab?()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in self?.hide() }
+        pendingHide?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.pendingHide = nil
+            self?.hide()
+        }
+        pendingHide = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
     }
 }

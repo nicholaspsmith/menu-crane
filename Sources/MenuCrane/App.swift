@@ -71,6 +71,34 @@ final class App: NSObject, NSApplicationDelegate {
             return store.search(q, aliases: self.aliases.aliases, recents: self.usage.recentEmoji)
         }
         panel = PanelController(state: state, performer: ActionPerformer(usage: usage), index: appIndex)
+
+        AliasEditorView.aliasesFor = { [weak self] c in self?.aliases.aliases[c] ?? [] }
+        AliasEditorView.save = { [weak self] names, c in try self?.aliases.setAliases(names, for: c) }
+        panel.activateEmoji = { [weak self] hit in
+            guard let self else { return }
+            let glyph = hit.emoji.glyph(self.panel.emojiUI.tone)
+            let performer = ActionPerformer(usage: self.usage)
+            performer.copy(glyph)
+            performer.recordEmoji(hit.emoji.char)
+            self.panel.flashCopied()
+        }
+        panel.emojiKeyHandler = { [weak self] e in
+            guard let self else { return false }
+            let mods = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            if e.keyCode == 40 && !mods.contains(.shift), let hit = self.panel.state.selectedEmoji {   // ⌘K
+                self.panel.emojiUI.editing = hit.emoji
+                return true
+            }
+            if e.keyCode == 1 && mods.contains(.shift) {                                                // ⌘⇧S
+                let next = self.panel.emojiUI.tone.next
+                self.panel.emojiUI.tone = next
+                Preferences.skinTone = next
+                self.panel.state.footerMessage = "Skin tone: \(next.title) \(next.swatch)"
+                return true
+            }
+            return false
+        }
+        aliases.onChange = { [weak self] in self?.panel.state.refresh() }
     }
 
     /// Retry a hotkey another app was holding (e.g. right after Raycast quits).

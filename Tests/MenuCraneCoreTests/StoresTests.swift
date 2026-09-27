@@ -38,6 +38,27 @@ final class StoresTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: url), "{not json")
     }
 
+    /// An in-place edit (`echo … > aliases.json`) changes no directory entry, so the watcher may never
+    /// fire; saving must still see the broken file and refuse, not overwrite it.
+    func testSetRefusesAFileBrokenSinceTheLastReloadWithoutAWatcherEvent() throws {
+        let url = dir.appending(path: "aliases.json")
+        let s = AliasStore(url: url)
+        try s.setAliases(["nerd"], for: "👓")
+        try Data("{oops".utf8).write(to: url)
+        XCTAssertThrowsError(try s.setAliases(["nerd", "geek"], for: "👓"))
+        XCTAssertEqual(try String(contentsOf: url), "{oops")
+        XCTAssertNotNil(s.loadError)
+    }
+
+    func testSetKeepsHandEditsMadeSinceTheLastReload() throws {
+        let url = dir.appending(path: "aliases.json")
+        let s = AliasStore(url: url)
+        try s.setAliases(["nerd"], for: "👓")
+        try Data(#"{"👓": ["nerd"], "🚀": ["ship"]}"#.utf8).write(to: url)
+        try s.setAliases(["geek"], for: "👓")
+        XCTAssertEqual(AliasStore(url: url).aliases, ["👓": ["geek"], "🚀": ["ship"]])
+    }
+
     func testOnChangeFiresOnReloadAndSet() throws {
         let s = AliasStore(url: dir.appending(path: "aliases.json"))
         var calls = 0

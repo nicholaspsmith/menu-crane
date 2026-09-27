@@ -21,6 +21,10 @@ public final class AliasStore {
 
     public func reload() {
         defer { onChange?() }
+        load()
+    }
+
+    private func load() {
         guard FileManager.default.fileExists(atPath: url.path) else {
             aliases = [:]; loadError = nil; return
         }
@@ -35,8 +39,10 @@ public final class AliasStore {
     }
 
     /// Replace `emoji`'s aliases (empty removes them). Refuses while the file on disk is unreadable,
-    /// so a hand edit with a typo is never overwritten.
+    /// so a hand edit with a typo is never overwritten. Re-reads the file first: an in-place edit
+    /// changes no directory entry, so the watcher may not have seen it.
     public func setAliases(_ names: [String], for emoji: String) throws {
+        load()
         guard loadError == nil else { throw AliasStoreError.fileUnreadable }
         var next = aliases
         let cleaned = Self.clean(names)
