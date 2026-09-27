@@ -17,4 +17,18 @@ enum Fixtures {
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
+
+    /// A minimal `.app` directory; `bundleID` nil leaves out Info.plist entirely.
+    @discardableResult
+    static func makeApp(_ name: String, in dir: URL, bundleID: String?) throws -> URL {
+        let app = dir.appending(path: "\(name).app")
+        let contents = app.appending(path: "Contents")
+        try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
+        if let bundleID {
+            let plist: [String: Any] = ["CFBundleIdentifier": bundleID, "CFBundleName": name, "CFBundlePackageType": "APPL"]
+            try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                .write(to: contents.appending(path: "Info.plist"))
+        }
+        return app
+    }
 }
