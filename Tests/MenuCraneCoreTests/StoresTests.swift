@@ -60,12 +60,32 @@ final class StoresTests: XCTestCase {
     }
 
     func testOnChangeFiresOnReloadAndSet() throws {
-        let s = AliasStore(url: dir.appending(path: "aliases.json"))
+        let url = dir.appending(path: "aliases.json")
+        let s = AliasStore(url: url)
         var calls = 0
         s.onChange = { calls += 1 }
         try s.setAliases(["a"], for: "🚀")
+        XCTAssertEqual(calls, 1)
+        try Data(#"{"🚀": ["b"]}"#.utf8).write(to: url)
         s.reload()
         XCTAssertEqual(calls, 2)
+    }
+
+    /// The directory watcher also fires for usage.json writes; a reload that finds the same
+    /// aliases must not notify, or the emoji grid's selection jumps back to 0.
+    func testReloadWithNothingChangedDoesNotFireOnChange() throws {
+        let url = dir.appending(path: "aliases.json")
+        try Data(#"{"🚀": ["ship"]}"#.utf8).write(to: url)
+        let s = AliasStore(url: url)
+        var calls = 0
+        s.onChange = { calls += 1 }
+        s.reload()
+        XCTAssertEqual(calls, 0)
+        try Data("not json".utf8).write(to: url)
+        s.reload()                       // loadError appears: a change
+        XCTAssertEqual(calls, 1)
+        s.reload()                       // same broken file, same error: no change
+        XCTAssertEqual(calls, 1)
     }
 
     // MARK: UsageStore

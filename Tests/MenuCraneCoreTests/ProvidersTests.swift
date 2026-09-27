@@ -77,6 +77,15 @@ final class ProvidersTests: XCTestCase {
         XCTAssertFalse(ids("s").contains { $0.hasPrefix("emoji:") })   // one letter: no emoji noise
     }
 
+    /// An alias that only matches as scattered letters ("nerd" for "nd") must not earn the alias
+    /// bonus that lifts it into the main list's inline emoji.
+    func testAliasSubsequenceMatchIsNotInline() throws {
+        let inline = EmojiInlineProvider(store: try Fixtures.emojiStore(), aliases: { ["👓": ["nerd"]] },
+                                         recents: { [] }, tone: { .none })
+        XCTAssertFalse(inline.results(for: Query("nd")).map(\.id).contains("emoji:👓"))
+        XCTAssertTrue(inline.results(for: Query("nerd")).map(\.id).contains("emoji:👓"))
+    }
+
     func testFrecencyReordersTies() {
         let before = ids("ma")
         XCTAssertTrue(before.contains("app:com.apple.mail"))

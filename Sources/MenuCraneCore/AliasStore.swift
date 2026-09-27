@@ -19,9 +19,12 @@ public final class AliasStore {
         reload()
     }
 
+    /// Re-reads the file, notifying only when the aliases or the load error actually changed —
+    /// the directory watcher also fires for usage.json writes beside it.
     public func reload() {
-        defer { onChange?() }
+        let before = (aliases, loadError)
         load()
+        if before != (aliases, loadError) { onChange?() }
     }
 
     private func load() {

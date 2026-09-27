@@ -34,8 +34,10 @@ public final class EmojiStore {
         var hits: [(hit: EmojiHit, order: Int)] = []
         for (i, e) in all.enumerated() {
             var s = Matcher.score(query, targets[i])
+            // The alias bonus is for a real (prefix-level) alias match only; letters scattered
+            // through an alias ("nd" in "nerd") match without it, or they'd reach the main list.
             if let names = aliases[e.char], !names.isEmpty, let a = Matcher.score(query, MatchTarget(names)) {
-                s = max(s ?? 0, a + Self.aliasBonus)
+                s = max(s ?? 0, a >= Matcher.prefixScore ? a + Self.aliasBonus : a)
             }
             guard var score = s else { continue }
             if let r = recentRank[e.char] {
