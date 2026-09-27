@@ -19,7 +19,21 @@ public final class UsageStore {
         self.now = now
         let dec = JSONDecoder()
         dec.dateDecodingStrategy = .iso8601
-        snap = (try? Data(contentsOf: url)).flatMap { try? dec.decode(Snapshot.self, from: $0) } ?? Snapshot()
+
+        // Check if file exists first
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            snap = Snapshot()
+            return
+        }
+
+        // File exists, try to read it
+        do {
+            let data = try Data(contentsOf: url)
+            snap = try dec.decode(Snapshot.self, from: data)
+        } catch {
+            coreLog.error("usage.json unreadable, starting fresh: \(error.localizedDescription, privacy: .public)")
+            snap = Snapshot()
+        }
     }
 
     public var recentEmoji: [String] { snap.recentEmoji }
