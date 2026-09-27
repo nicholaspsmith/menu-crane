@@ -17,7 +17,14 @@ final class SettingsModel: ObservableObject {
     let onHotkey: (Trigger) -> String?
     let openAliases: () -> Void
     var onTone: ((SkinTone) -> Void)?
+    /// Whether the Settings window is currently key; set by the controller. A captured key is
+    /// ignored once it's false, since the recorder's monitor is app-wide and would otherwise be
+    /// able to swallow a keystroke meant for another of our windows (e.g. Emoji Aliases).
+    var isWindowKey: () -> Bool = { true }
     private let recorder = TriggerRecorder()
+    private var recordTimeout: DispatchWorkItem?
+    /// How long an abandoned recording (no key pressed) stays armed before it gives up on its own.
+    static let recordTimeoutSeconds: TimeInterval = 10
 
     init(trigger: Trigger, hotkeyError: String?, onHotkey: @escaping (Trigger) -> String?, openAliases: @escaping () -> Void) {
         self.trigger = trigger; self.hotkeyError = hotkeyError; self.onHotkey = onHotkey; self.openAliases = openAliases
@@ -25,13 +32,31 @@ final class SettingsModel: ObservableObject {
 
     func record() {
         recording = true
+        let timeout = DispatchWorkItem { [weak self] in self?.stopRecording() }
+        recordTimeout?.cancel()
+        recordTimeout = timeout
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.recordTimeoutSeconds, execute: timeout)
         recorder.start { [weak self] t in
             guard let self else { return }
+            self.recordTimeout?.cancel()
+            self.recordTimeout = nil
             self.recording = false
+            guard self.isWindowKey() else { return }   // the window lost key status mid-capture
             guard !t.modifiers.isEmpty else { self.hotkeyError = "Add at least one modifier (⌘, ⌥, ⌃ or ⇧)."; return }
             self.trigger = t
             self.hotkeyError = self.onHotkey(t)
         }
+    }
+
+    /// Cancels an in-progress recording: the window closed, resigned key, is being shown again, or
+    /// the timeout fired. Leaving the recorder's app-wide monitor installed would otherwise swallow
+    /// the next keystroke anywhere in the app.
+    func stopRecording() {
+        guard recording else { return }
+        recordTimeout?.cancel()
+        recordTimeout = nil
+        recorder.stop()
+        recording = false
     }
 
     func setLogin(_ on: Bool) {
@@ -68,17 +93,23 @@ struct SettingsView: View {
     }
 }
 
-final class SettingsWindowController {
+final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     let model: SettingsModel
-    init(model: SettingsModel) { self.model = model }
+    init(model: SettingsModel) {
+        self.model = model
+        super.init()
+        model.isWindowKey = { [weak self] in self?.window?.isKeyWindow ?? false }
+    }
 
     func show() {
+        model.stopRecording()   // showing again abandons any recording left running
         if window == nil {
             let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
             w.title = "Menu Crane Settings"
             w.styleMask.remove(.resizable)
             w.isReleasedWhenClosed = false
+            w.delegate = self
             window = w
         }
         model.loginEnabled = LoginItem.isEnabled
@@ -86,4 +117,7 @@ final class SettingsWindowController {
         window?.center()
         window?.makeKeyAndOrderFront(nil)
     }
+
+    func windowDidResignKey(_ notification: Notification) { model.stopRecording() }
+    func windowWillClose(_ notification: Notification) { model.stopRecording() }
 }

@@ -34,4 +34,16 @@ final class HotkeySettingsTests: XCTestCase {
         XCTAssertEqual(TriggerText.describe(.key(96, [.control])), "⌃F5")
         XCTAssertEqual(TriggerText.describe(.key(200, [.command])), "⌘Key 200")
     }
+
+    func testRebindAdoptsOnSuccess() {
+        let decision = HotkeyRebind.decide(failure: nil, previous: .key(49, [.command]))
+        XCTAssertTrue(decision.adopt)
+        XCTAssertNil(decision.message)
+    }
+
+    func testRebindKeepsThePreviousTriggerOnFailure() {
+        let decision = HotkeyRebind.decide(failure: "⌥Space is in use by Raycast", previous: .key(49, [.command]))
+        XCTAssertFalse(decision.adopt)
+        XCTAssertEqual(decision.message, "⌥Space is in use by Raycast — kept ⌘Space")
+    }
 }

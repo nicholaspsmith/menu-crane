@@ -69,13 +69,25 @@ struct AliasesView: View {
     }
 }
 
-/// Edits in place; saves on Return or when focus leaves.
+/// Edits in place; saves on Return, or when focus leaves after a change.
 struct AliasCell: View {
     @State var text: String
+    @FocusState private var focused: Bool
+    /// The value last saved (or loaded), so losing focus without an edit doesn't re-save.
+    private let original: String
     let commit: (String) -> Void
-    init(text: String, commit: @escaping (String) -> Void) { _text = State(initialValue: text); self.commit = commit }
+    init(text: String, commit: @escaping (String) -> Void) {
+        _text = State(initialValue: text)
+        original = text
+        self.commit = commit
+    }
     var body: some View {
-        TextField("add names, comma-separated", text: $text).onSubmit { commit(text) }
+        TextField("add names, comma-separated", text: $text)
+            .focused($focused)
+            .onSubmit { commit(text) }
+            .onChange(of: focused) { isFocused in
+                if !isFocused, text != original { commit(text) }
+            }
     }
 }
 

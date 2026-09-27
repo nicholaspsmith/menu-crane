@@ -109,9 +109,16 @@ final class App: NSObject, NSApplicationDelegate {
             trigger: trigger, hotkeyError: nil,
             onHotkey: { [weak self] t in
                 guard let self else { return nil }
-                self.trigger = t
-                HotkeySettings.save(t, to: .standard)
-                return self.hotkey.register(t)
+                let previous = self.trigger
+                let failure = self.hotkey.register(t)
+                let decision = HotkeyRebind.decide(failure: failure, previous: previous)
+                if decision.adopt {
+                    self.trigger = t
+                    HotkeySettings.save(t, to: .standard)
+                } else {
+                    self.hotkey.register(previous)   // restore the hotkey that was working
+                }
+                return decision.message
             },
             openAliases: { [weak self] in self?.aliasesWindow?.show() })
         settingsModel.onTone = { [weak self] t in self?.panel.emojiUI.tone = t }
