@@ -32,13 +32,16 @@ public enum Matcher {
     public static func score(_ query: Query, _ target: MatchTarget) -> Double? {
         guard !query.words.isEmpty, !target.words.isEmpty else { return nil }
         var total = 0.0
+        var constraintCount = 0
         for (i, qword) in query.words.enumerated() {
             let q = MatchTarget.split(qword).joined()
             if q.isEmpty { continue }   // a word of pure punctuation constrains nothing
             guard let best = best(q, target, isFirst: i == 0) else { return nil }
             total += best
+            constraintCount += 1
         }
-        return total / Double(query.words.count)
+        guard constraintCount > 0 else { return nil }
+        return total / Double(constraintCount)
     }
 
     static func best(_ q: String, _ t: MatchTarget, isFirst: Bool) -> Double? {

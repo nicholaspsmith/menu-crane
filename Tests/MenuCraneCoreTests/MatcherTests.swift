@@ -46,4 +46,13 @@ final class MatcherTests: XCTestCase {
         XCTAssertNil(s("", "Safari"))
         XCTAssertNil(s("   ", "Safari"))
     }
+
+    func testPurelyNonAlphanumericQueryMatchesNothing() {
+        XCTAssertNil(s("???", "Safari"))
+        XCTAssertNil(s("-- !!", "Safari"))
+    }
+
+    func testPunctuationMixedWithRealWordStillMatches() {
+        XCTAssertNotNil(s("saf !", "Safari"))
+    }
 }
