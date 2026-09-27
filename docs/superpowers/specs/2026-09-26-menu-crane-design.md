@@ -198,7 +198,7 @@ command as the top row.
   field also returns.
 - ⌘K on the selected emoji opens a small inline alias editor (add/remove names).
 - ⌘⇧S picks the default skin tone.
-- Remembers its scroll position within a session; opens fresh on each summon.
+- Opens fresh (empty search, recents first) each time it is entered.
 
 ### 4.5 Search semantics for emoji
 
