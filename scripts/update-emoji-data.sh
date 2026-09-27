@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: MPL-2.0
+# SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Nicholas Smith
 # Regenerate Resources/bundle/emoji.json from Unicode's emoji-test.txt and CLDR's
 # English annotations. Re-run (bumping the pins) when Unicode ships a new version.
