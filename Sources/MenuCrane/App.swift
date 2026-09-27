@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Nicholas Smith
 
 import AppKit
+import Combine
 import HotkeyKit
 import MenuCraneCore
 import StatusItemKit
@@ -23,6 +24,9 @@ final class App: NSObject, NSApplicationDelegate {
     private var panel: PanelController!
     private var settings: SettingsWindowController!
     private var aliasesWindow: AliasesWindowController?
+    private var mood = CharacterIcon.CraneState.idle
+    private var grabbedUntil = Date.distantPast
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         makeServices()
@@ -35,10 +39,58 @@ final class App: NSObject, NSApplicationDelegate {
         status.start()
         yieldClient = YieldClient(item: status)
         yieldClient.start()
-        status.setIcon(CharacterIcon.menuCrane(state: .idle))
+        refreshIcon()
+        wireMoods()
 
         hotkey.onPress = { [weak self] in self?.openPanel() }
         hotkey.register(trigger)
+    }
+
+    private func setMood(_ m: CharacterIcon.CraneState) {
+        mood = m
+        refreshIcon()
+    }
+
+    private func refreshIcon() {
+        if Preferences.iconStyle == "dot" {
+            status.setIcon(Self.dot)
+        } else {
+            status.setIcon(CharacterIcon.menuCrane(state: mood))
+        }
+    }
+
+    /// A plain grey dot for people who'd rather not have the crane.
+    static let dot: NSImage = {
+        let img = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+            NSColor.black.set()
+            NSBezierPath(ovalIn: NSRect(x: 5.5, y: 5.5, width: 7, height: 7)).fill()
+            return true
+        }
+        img.isTemplate = true
+        return img
+    }()
+
+    private func wireMoods() {
+        panel.onVisibilityChange = { [weak self] visible in
+            guard let self, Date() >= self.grabbedUntil else { return }
+            self.setMood(visible ? .searching : .idle)
+        }
+        panel.onGrab = { [weak self] in
+            guard let self else { return }
+            self.grabbedUntil = Date().addingTimeInterval(0.5)
+            self.setMood(.grabbed)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self else { return }
+                self.setMood(self.panel.isVisible ? .searching : .idle)
+            }
+        }
+        panel.state.$results.combineLatest(panel.state.$emoji)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.panel.isVisible, Date() >= self.grabbedUntil else { return }
+                self.setMood(self.panel.state.isMiss ? .miss : .searching)
+            }
+            .store(in: &cancellables)
     }
 
     private func makeServices() {
@@ -73,6 +125,7 @@ final class App: NSObject, NSApplicationDelegate {
             return store.search(q, aliases: self.aliases.aliases, recents: self.usage.recentEmoji)
         }
         panel = PanelController(state: state, performer: ActionPerformer(usage: usage), index: appIndex)
+        panel.onShow = { [weak self] in self?.aliases.reload() }
 
         AliasEditorView.aliasesFor = { [weak self] c in self?.aliases.aliases[c] ?? [] }
         AliasEditorView.save = { [weak self] names, c in try self?.aliases.setAliases(names, for: c) }
@@ -87,7 +140,8 @@ final class App: NSObject, NSApplicationDelegate {
         panel.emojiKeyHandler = { [weak self] e in
             guard let self else { return false }
             let mods = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            if e.keyCode == 40 && !mods.contains(.shift), let hit = self.panel.state.selectedEmoji {   // ⌘K
+            if e.keyCode == 40 && !mods.contains(.shift), self.panel.emojiUI.editing == nil,
+               let hit = self.panel.state.selectedEmoji {                                              // ⌘K
                 self.panel.emojiUI.editing = hit.emoji
                 return true
             }
@@ -144,9 +198,24 @@ final class App: NSObject, NSApplicationDelegate {
         let login = menuItem("Start at Login", #selector(toggleLogin))
         login.state = LoginItem.isEnabled ? .on : .off
         menu.addItem(login)
+        let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        for (title, style) in [("Crane", "crane"), ("Dot", "dot")] {
+            let item = menuItem(title, #selector(chooseIcon(_:)))
+            item.representedObject = style
+            item.state = Preferences.iconStyle == style ? .on : .off
+            sub.addItem(item)
+        }
+        icon.submenu = sub
+        menu.addItem(icon)
         menu.addItem(.separator())
         menu.addItem(AppVersion.menuItem())
         menu.addItem(menuItem("Quit Menu Crane", #selector(quit), key: "q"))
+    }
+
+    @objc private func chooseIcon(_ sender: NSMenuItem) {
+        Preferences.iconStyle = sender.representedObject as? String ?? "crane"
+        refreshIcon()
     }
 
     func menuItem(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {

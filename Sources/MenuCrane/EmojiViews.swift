@@ -43,7 +43,7 @@ struct EmojiGridView: View {
                                 .background(RoundedRectangle(cornerRadius: 8)
                                     .fill(i == state.selection ? Color.accentColor.opacity(0.3) : .clear))
                                 .contentShape(Rectangle())
-                                .onTapGesture { onPick(hit) }
+                                .onTapGesture { if ui.editing == nil { onPick(hit) } }
                         }
                     }
                     .padding(.horizontal, 12)

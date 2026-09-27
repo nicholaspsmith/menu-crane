@@ -17,6 +17,9 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var anchorTop: CGFloat = 0
     private var anchorX: CGFloat = 0
+    /// Set while `resize()` moves the panel itself, so that move isn't mistaken for a drag and
+    /// saved as a remembered position.
+    private var isProgrammaticMove = false
     /// The close that follows a copy; cancelled if the panel is summoned again before it fires.
     private var pendingHide: DispatchWorkItem?
     /// Set while `hide()` runs, so the resignKey that `orderOut` triggers doesn't hide (and notify) twice.
@@ -26,6 +29,8 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     var onVisibilityChange: ((Bool) -> Void)?
     var onGrab: (() -> Void)?
     var onOpenSettings: (() -> Void)?
+    /// Called first thing on `show()`, so in-place hand edits of aliases.json are picked up.
+    var onShow: (() -> Void)?
     /// Emoji-mode key equivalents (⌘K, ⌘⇧S), installed by Task 15.
     var emojiKeyHandler: ((NSEvent) -> Bool)?
     /// Copy an emoji chosen in the grid, installed by Task 15.
@@ -78,6 +83,19 @@ final class PanelController: NSObject, NSTextFieldDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.resize() }
             .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: NSWindow.didMoveNotification, object: panel)
+            .sink { [weak self] _ in self?.windowMoved() }
+            .store(in: &cancellables)
+    }
+
+    /// Keep the top edge anchored (so a resize from new results doesn't snap the panel back),
+    /// and remember a real drag so the next summon can reopen there.
+    private func windowMoved() {
+        let f = panel.frame
+        anchorTop = f.maxY
+        anchorX = f.minX
+        guard !isProgrammaticMove else { return }
+        PanelPlacement.save(CGPoint(x: f.minX, y: f.maxY), to: .standard)
     }
 
     static let mainPlaceholder = "Search apps, emoji, math, units…"
@@ -97,20 +115,32 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     func toggle() { isVisible ? hide() : show() }
 
     func show() {
+        onShow?()
         pendingHide?.cancel()
         pendingHide = nil
         state.reset()
         emojiUI.editing = nil
         syncField()
-        let mouse = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
-        guard let vf = screen?.visibleFrame else { return }
-        anchorTop = vf.maxY - vf.height / 3 + PanelMetrics.fieldHeight / 2
-        anchorX = vf.midX - PanelMetrics.width / 2
+        guard let (top, x) = placement() else { return }
+        anchorTop = top
+        anchorX = x
         resize()
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(field)
         onVisibilityChange?(true)
+    }
+
+    /// Where to open: a remembered drag position if it's still on a connected screen, else
+    /// centered a third down on the screen under the mouse.
+    private func placement() -> (top: CGFloat, x: CGFloat)? {
+        let screens = NSScreen.screens.map(\.visibleFrame)
+        if let saved = PanelPlacement.decide(saved: PanelPlacement.load(from: .standard), screens: screens) {
+            return (saved.y, saved.x)
+        }
+        let mouse = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
+        guard let vf = screen?.visibleFrame else { return nil }
+        return (vf.maxY - vf.height / 3 + PanelMetrics.fieldHeight / 2, vf.midX - PanelMetrics.width / 2)
     }
 
     func hide() {
@@ -132,7 +162,9 @@ final class PanelController: NSObject, NSTextFieldDelegate {
             body = rows == 0 ? 0 : CGFloat(rows) * PanelMetrics.rowHeight + 9
         }
         let h = PanelMetrics.fieldHeight + body + PanelMetrics.footerHeight
+        isProgrammaticMove = true
         panel.setFrame(NSRect(x: anchorX, y: anchorTop - h, width: PanelMetrics.width, height: h), display: true)
+        isProgrammaticMove = false
     }
 
     /// Put the field's text and placeholder in step with the state (after mode changes).

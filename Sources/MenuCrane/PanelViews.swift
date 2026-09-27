@@ -32,6 +32,7 @@ struct PanelBody: View {
             }
             FooterView(state: state)
         }
+        .background(WindowDragArea())
     }
 }
 

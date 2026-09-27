@@ -19,7 +19,8 @@ final class CranePanel: NSPanel {
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
         for b in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] { standardWindowButton(b)?.isHidden = true }
-        isMovable = false
+        isMovable = true
+        isMovableByWindowBackground = true
         hidesOnDeactivate = false
         backgroundColor = .clear
         hasShadow = true
