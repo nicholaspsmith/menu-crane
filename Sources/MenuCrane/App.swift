@@ -73,11 +73,18 @@ final class App: NSObject, NSApplicationDelegate {
     }()
 
     private func wireMoods() {
+        // Showing cancels a stale grab and starts searching. Hiding leaves a pending grab alone
+        // — a launch or copy hides the panel right after grabbing — and its revert re-derives
+        // the mood (idle, once hidden) when it fires.
         panel.onVisibilityChange = { [weak self] visible in
             guard let self else { return }
-            self.grabRevert?.cancel()
-            self.grabRevert = nil
-            self.setMood(visible ? .searching : .idle)
+            if visible {
+                self.grabRevert?.cancel()
+                self.grabRevert = nil
+                self.setMood(.searching)
+            } else if self.grabRevert == nil {
+                self.setMood(.idle)
+            }
         }
         panel.onGrab = { [weak self] in
             guard let self else { return }

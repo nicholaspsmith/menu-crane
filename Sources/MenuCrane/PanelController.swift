@@ -252,6 +252,7 @@ final class PanelController: NSObject, NSTextFieldDelegate {
             } else {
                 state.footerMessage = "Couldn't open \(item.title)"
                 index.rebuild()
+                state.refresh()   // drop the app that's gone; refresh leaves the footer message alone
             }
         case .reveal(let url):
             performer.reveal(url)
