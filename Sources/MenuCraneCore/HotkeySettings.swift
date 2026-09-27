@@ -51,13 +51,14 @@ public enum TriggerText {
     ]
 }
 
-/// The decision after attempting to register a newly recorded trigger: whether to adopt it, and
-/// what to tell the user. Pure (no Carbon call), so the rollback logic is unit-testable: the
-/// caller has already re-registered `previous` when `failure` is non-nil, and this only decides
-/// whether `App` should keep pointing at the new trigger or fall back to the one still active.
+/// The outcome of attempting to register a newly recorded trigger: what's actually active
+/// afterward, and what to tell the user. Pure (no Carbon call), so the rollback logic is
+/// unit-testable: the caller has already re-registered `previous` when `failure` is non-nil, and
+/// this only decides whether the *active* trigger is the new one or the one still working — the
+/// single source of truth callers (both `App` and the Settings UI) should adopt.
 public enum HotkeyRebind {
-    public static func decide(failure: String?, previous: Trigger) -> (adopt: Bool, message: String?) {
-        guard let failure else { return (true, nil) }
-        return (false, "\(failure) — kept \(TriggerText.describe(previous))")
+    public static func decide(new: Trigger, failure: String?, previous: Trigger) -> (trigger: Trigger, message: String?) {
+        guard let failure else { return (new, nil) }
+        return (previous, "\(failure) — kept \(TriggerText.describe(previous))")
     }
 }

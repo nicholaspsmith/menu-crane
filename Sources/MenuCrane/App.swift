@@ -108,17 +108,17 @@ final class App: NSObject, NSApplicationDelegate {
         let settingsModel = SettingsModel(
             trigger: trigger, hotkeyError: nil,
             onHotkey: { [weak self] t in
-                guard let self else { return nil }
+                guard let self else { return (t, nil) }
                 let previous = self.trigger
                 let failure = self.hotkey.register(t)
-                let decision = HotkeyRebind.decide(failure: failure, previous: previous)
-                if decision.adopt {
-                    self.trigger = t
+                if failure == nil {
                     HotkeySettings.save(t, to: .standard)
                 } else {
                     self.hotkey.register(previous)   // restore the hotkey that was working
                 }
-                return decision.message
+                let decision = HotkeyRebind.decide(new: t, failure: failure, previous: previous)
+                self.trigger = decision.trigger
+                return (decision.trigger, decision.message)
             },
             openAliases: { [weak self] in self?.aliasesWindow?.show() })
         settingsModel.onTone = { [weak self] t in self?.panel.emojiUI.tone = t }
@@ -157,6 +157,7 @@ final class App: NSObject, NSApplicationDelegate {
 
     @objc func openPanel() { panel.toggle() }
     @objc func openSettings() {
+        settings.model.trigger = trigger
         settings.model.hotkeyError = hotkey.failure
         settings.show()
     }

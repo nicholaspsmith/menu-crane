@@ -14,7 +14,9 @@ final class SettingsModel: ObservableObject {
     @Published var unitSystem = Preferences.unitSystem { didSet { Preferences.unitSystem = unitSystem } }
     @Published var tone = Preferences.skinTone { didSet { Preferences.skinTone = tone; onTone?(tone) } }
     @Published var loginEnabled = LoginItem.isEnabled
-    let onHotkey: (Trigger) -> String?
+    /// Registers the trigger and reports what's actually active afterward — a failed rebind
+    /// leaves the previous trigger active, so the Hotkey row must show that, not the rejected one.
+    let onHotkey: (Trigger) -> (trigger: Trigger, error: String?)
     let openAliases: () -> Void
     var onTone: ((SkinTone) -> Void)?
     /// Whether the Settings window is currently key; set by the controller. A captured key is
@@ -26,7 +28,7 @@ final class SettingsModel: ObservableObject {
     /// How long an abandoned recording (no key pressed) stays armed before it gives up on its own.
     static let recordTimeoutSeconds: TimeInterval = 10
 
-    init(trigger: Trigger, hotkeyError: String?, onHotkey: @escaping (Trigger) -> String?, openAliases: @escaping () -> Void) {
+    init(trigger: Trigger, hotkeyError: String?, onHotkey: @escaping (Trigger) -> (trigger: Trigger, error: String?), openAliases: @escaping () -> Void) {
         self.trigger = trigger; self.hotkeyError = hotkeyError; self.onHotkey = onHotkey; self.openAliases = openAliases
     }
 
@@ -43,8 +45,9 @@ final class SettingsModel: ObservableObject {
             self.recording = false
             guard self.isWindowKey() else { return }   // the window lost key status mid-capture
             guard !t.modifiers.isEmpty else { self.hotkeyError = "Add at least one modifier (⌘, ⌥, ⌃ or ⇧)."; return }
-            self.trigger = t
-            self.hotkeyError = self.onHotkey(t)
+            let result = self.onHotkey(t)
+            self.trigger = result.trigger   // whatever App actually adopted, not necessarily `t`
+            self.hotkeyError = result.error
         }
     }
 
@@ -105,7 +108,13 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     func show() {
         model.stopRecording()   // showing again abandons any recording left running
         if window == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
+            let hosting = NSHostingController(rootView: SettingsView(model: model))
+            // NSWindow(contentViewController:) doesn't size itself to a hosted SwiftUI view on its
+            // own — without this the window opens as just its title bar. This tracks the Form's
+            // real intrinsic size instead of a guessed constant, the way AliasesWindowController's
+            // explicit setContentSize does for its own (fixed-size) window.
+            hosting.sizingOptions = [.preferredContentSize]
+            let w = NSWindow(contentViewController: hosting)
             w.title = "Menu Crane Settings"
             w.styleMask.remove(.resizable)
             w.isReleasedWhenClosed = false
