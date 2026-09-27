@@ -909,7 +909,8 @@ git commit -m "feat: unit converter with US Imperial / Metric bare-value suggest
 `scripts/update-emoji-data.sh`:
 ```bash
 #!/usr/bin/env bash
-# (MPL header, # form)
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Nicholas Smith
 # Regenerate Resources/bundle/emoji.json from Unicode's emoji-test.txt and CLDR's
 # English annotations. Re-run (bumping the pins) when Unicode ships a new version.
 set -euo pipefail
@@ -2667,7 +2668,7 @@ let package = Package(
 </plist>
 ```
 
-`scripts/build-app.sh` (MPL header, then):
+`scripts/build-app.sh` (MIT SPDX header, then):
 ```bash
 # Build "Menu Crane.app" via the shared StatusItemKit bundler.
 set -euo pipefail
@@ -2675,13 +2676,13 @@ cd "$(dirname "$0")/.."
 exec ../StatusItemKit/scripts/make-app.sh MenuCrane "Menu Crane"
 ```
 
-`install.sh`: copy `~/Code/keylight-menubar/install.sh`, replace its MPL header with the MIT header, and change `APP_NAME="KeyLight.app"` → `APP_NAME="Menu Crane.app"`, the comment's app name, and the login line's binary path to `"$HOME/Applications/$APP_NAME/Contents/MacOS/MenuCrane"`.
+`install.sh`: copy `~/Code/keylight-menubar/install.sh`, replace its MPL header with the MIT SPDX header, and change `APP_NAME="KeyLight.app"` → `APP_NAME="Menu Crane.app"`, the comment's app name, and the login line's binary path to `"$HOME/Applications/$APP_NAME/Contents/MacOS/MenuCrane"`.
 
 Run: `chmod +x scripts/build-app.sh install.sh`
 
 - [ ] **Step 3: Entry point and delegate**
 
-`Sources/MenuCrane/main.swift` (MPL header, then):
+`Sources/MenuCrane/main.swift` (MIT SPDX header, then):
 ```swift
 import AppKit
 import StatusItemKit
@@ -2696,7 +2697,7 @@ app.delegate = delegate
 app.run()
 ```
 
-`Sources/MenuCrane/App.swift` (MPL header, then):
+`Sources/MenuCrane/App.swift` (MIT SPDX header, then):
 ```swift
 import AppKit
 import MenuCraneCore
@@ -2781,7 +2782,7 @@ git add -A && git commit -m "build: bundle, install script and license"
 
 - [ ] **Step 1: Implement the Carbon hotkey**
 
-`Sources/MenuCrane/HotkeyService.swift` (MPL header, then):
+`Sources/MenuCrane/HotkeyService.swift` (MIT SPDX header, then):
 ```swift
 import AppKit
 import Carbon.HIToolbox
@@ -4151,7 +4152,7 @@ git add -A && git commit -m "feat: Mendoza's moods in the menu bar and the Icon 
 
 - [ ] **Step 1: App icon**
 
-`scripts/make-icon.sh` (MPL header, then):
+`scripts/make-icon.sh` (MIT SPDX header, then):
 ```bash
 # Build Resources/bundle/AppIcon.icns from Mendoza's 1024 px idle image.
 set -euo pipefail
