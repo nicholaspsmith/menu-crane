@@ -52,4 +52,18 @@ final class AppIndexTests: XCTestCase {
         let finder = try Fixtures.makeApp("Finder", in: dir, bundleID: "com.apple.finder")
         XCTAssertEqual(AppIndex(roots: [], extras: [finder]).apps.map(\.name), ["Finder"])
     }
+
+    /// macOS marks /Applications/Safari.app (a link into the Safari cryptex) with the Finder
+    /// "hidden" flag; it must still be indexed. Dot-named entries stay skipped.
+    func testHiddenFlaggedLinkIsIndexedButDotEntriesAreNot() throws {
+        let fm = FileManager.default
+        let root = try Fixtures.tempDir(), elsewhere = try Fixtures.tempDir()
+        let target = try Fixtures.makeApp("Browser", in: elsewhere, bundleID: "com.test.browser")
+        let link = root.appending(path: "Browser.app")
+        try fm.createSymbolicLink(at: link, withDestinationURL: target)
+        XCTAssertEqual(lchflags(link.path, UInt32(UF_HIDDEN)), 0)
+        try Fixtures.makeApp(".Secret", in: root, bundleID: "com.test.secret")
+
+        XCTAssertEqual(AppIndex(roots: [root], extras: []).apps.map(\.name), ["Browser"])
+    }
 }

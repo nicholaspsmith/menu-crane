@@ -52,7 +52,10 @@ public final class AppIndex {
         func walk(_ dir: URL, depth: Int) {
             let items: [URL]
             do {
-                items = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+                // Not .skipsHiddenFiles: that also drops entries with the Finder "hidden" flag,
+                // which macOS sets on /Applications/Safari.app. Skip only dot-named entries.
+                items = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
+                    .filter { !$0.lastPathComponent.hasPrefix(".") }
             } catch {
                 skipped.append("\(dir.path): \(error.localizedDescription)"); return
             }
