@@ -8,13 +8,23 @@ let package = Package(
     name: "MenuCrane",
     platforms: [.macOS(.v13)],
     products: [
+        .executable(name: "MenuCrane", targets: ["MenuCrane"]),
         .library(name: "MenuCraneCore", targets: ["MenuCraneCore"]),
     ],
     dependencies: [
+        .package(path: "../StatusItemKit"),
         .package(path: "../HotkeyKit"),
     ],
     targets: [
         .target(name: "MenuCraneCore", dependencies: [.product(name: "HotkeyKit", package: "HotkeyKit")]),
+        .executableTarget(
+            name: "MenuCrane",
+            dependencies: [
+                "MenuCraneCore",
+                .product(name: "StatusItemKit", package: "StatusItemKit"),
+                .product(name: "HotkeyKit", package: "HotkeyKit"),
+            ]
+        ),
         .testTarget(name: "MenuCraneCoreTests", dependencies: ["MenuCraneCore"]),
     ]
 )
