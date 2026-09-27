@@ -21,6 +21,8 @@ final class App: NSObject, NSApplicationDelegate {
     private var appIndex: AppIndex!
     private var appWatcher: FSEventsWatcher?
     private var panel: PanelController!
+    private var settings: SettingsWindowController!
+    private var aliasesWindow: AliasesWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         makeServices()
@@ -99,6 +101,22 @@ final class App: NSObject, NSApplicationDelegate {
             return false
         }
         aliases.onChange = { [weak self] in self?.panel.state.refresh() }
+
+        if let store = emojiStore {
+            aliasesWindow = AliasesWindowController(model: AliasesModel(store: store, aliasStore: aliases, usage: usage))
+        }
+        let settingsModel = SettingsModel(
+            trigger: trigger, hotkeyError: nil,
+            onHotkey: { [weak self] t in
+                guard let self else { return nil }
+                self.trigger = t
+                HotkeySettings.save(t, to: .standard)
+                return self.hotkey.register(t)
+            },
+            openAliases: { [weak self] in self?.aliasesWindow?.show() })
+        settingsModel.onTone = { [weak self] t in self?.panel.emojiUI.tone = t }
+        settings = SettingsWindowController(model: settingsModel)
+        panel.onOpenSettings = { [weak self] in self?.openSettings() }
     }
 
     /// Retry a hotkey another app was holding (e.g. right after Raycast quits).
@@ -114,6 +132,7 @@ final class App: NSObject, NSApplicationDelegate {
             menu.addItem(warn)
         }
         menu.addItem(menuItem("Open Menu Crane (\(TriggerText.describe(trigger)))", #selector(openPanel)))
+        menu.addItem(menuItem("Settings…", #selector(openSettings), key: ","))
         menu.addItem(.separator())
         let login = menuItem("Start at Login", #selector(toggleLogin))
         login.state = LoginItem.isEnabled ? .on : .off
@@ -130,6 +149,10 @@ final class App: NSObject, NSApplicationDelegate {
     }
 
     @objc func openPanel() { panel.toggle() }
+    @objc func openSettings() {
+        settings.model.hotkeyError = hotkey.failure
+        settings.show()
+    }
     @objc private func toggleLogin() { LoginItem.toggle() }
     @objc private func quit() { NSApp.terminate(nil) }
 }
