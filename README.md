@@ -71,8 +71,8 @@ render custom rows like an emoji grid or live math.
 ./install.sh
 ```
 
-Builds `Menu Crane.app`, symlinks it into `~/Applications`, turns on
-**Start at Login** and launches it. Needs sibling checkouts of
+Builds `Menu Crane.app`, symlinks it into `~/Applications`, asks whether to
+turn on **Start at Login**, and (re)launches it. Needs sibling checkouts of
 [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) (0.9.0 or
 later) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit) next to
 this repo (`../StatusItemKit`, `../HotkeyKit`). No permissions are needed —
