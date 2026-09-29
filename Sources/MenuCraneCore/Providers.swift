@@ -23,9 +23,9 @@ public final class AppProvider: Provider {
         return targets.compactMap { app, target in
             guard let s = Matcher.score(query, target) else { return nil }
             return ResultItem(id: "app:\(app.key)", kind: .app, title: app.name,
-                              subtitle: Self.abbreviate(app.url.path), icon: .app(app.url),
+                              subtitle: Self.abbreviate(app.location.path), icon: .app(app.url),
                               score: s + usage.boost(for: app.key), action: .open(app.url),
-                              alternate: .reveal(app.url), usageKey: app.key)
+                              alternate: .reveal(app.location), usageKey: app.key)
         }
     }
 

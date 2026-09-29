@@ -5,7 +5,11 @@ import Foundation
 
 public struct AppEntry: Equatable, Sendable {
     public let name: String
+    /// The app itself, symlinks resolved: what is opened and what the icon is read from.
     public let url: URL
+    /// Where the index found it — for a Menubarn app, the link in ~/Applications rather than
+    /// the build folder it points into. Shown under the name and revealed in Finder.
+    public let location: URL
     public let bundleID: String?
     /// Identity for de-duplication and usage: bundle id, else path.
     public var key: String { bundleID ?? url.path }
@@ -46,7 +50,10 @@ public final class AppIndex {
             }
             var name = FileManager.default.displayName(atPath: resolved.path)
             if name.hasSuffix(".app") { name.removeLast(4) }
-            let entry = AppEntry(name: name, url: resolved, bundleID: Bundle(url: resolved)?.bundleIdentifier)
+            let isLink = (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]))?.isSymbolicLink == true
+            let location = isLink ? url : resolved
+            let entry = AppEntry(name: name, url: resolved, location: location,
+                                 bundleID: Bundle(url: resolved)?.bundleIdentifier)
             if seen.insert(entry.key).inserted { found.append(entry) }
         }
         func walk(_ dir: URL, depth: Int) {

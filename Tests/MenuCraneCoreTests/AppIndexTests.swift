@@ -26,7 +26,15 @@ final class AppIndexTests: XCTestCase {
         let index = AppIndex(roots: [a, b], extras: [])
         let names = index.apps.map(\.name)
         XCTAssertEqual(Set(names), ["Real", "Tool", "NoID", "Linked"])
-        XCTAssertEqual(index.apps.first { $0.name == "Linked" }?.url.resolvingSymlinksInPath(), linked.resolvingSymlinksInPath())
+        let linkedEntry = index.apps.first { $0.name == "Linked" }
+        XCTAssertEqual(linkedEntry?.url.resolvingSymlinksInPath(), linked.resolvingSymlinksInPath())
+        // Shown and revealed where it was found, not where the link points.
+        // (Compared by folder, resolved: the temp dir itself is /var → /private/var.)
+        XCTAssertEqual(linkedEntry?.location.lastPathComponent, "Linked.app")
+        XCTAssertEqual(linkedEntry?.location.deletingLastPathComponent().resolvingSymlinksInPath(),
+                       b.resolvingSymlinksInPath())
+        let real = index.apps.first { $0.name == "Real" }
+        XCTAssertEqual(real?.location, real?.url)
         XCTAssertNil(index.apps.first { $0.name == "NoID" }?.bundleID)
         XCTAssertTrue(index.skipped.contains { $0.contains("Gone.app") })
         XCTAssertEqual(names, names.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
