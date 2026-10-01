@@ -6,7 +6,7 @@
 
 A ⌘Space launcher for macOS that does only what I used Raycast for, and
 nothing else: opening apps, simple arithmetic, unit conversions and finding
-emoji. Part of [Menubarn](https://widgets.nicksmith.software), built on
+emoji. Part of [Menumon](https://menumon.nicksmith.software), built on
 [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) and
 [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit).
 
