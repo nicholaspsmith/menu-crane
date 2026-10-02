@@ -16,7 +16,7 @@ final class AppIndexTests: XCTestCase {
         try fm.createDirectory(at: deep, withIntermediateDirectories: true)
         try Fixtures.makeApp("TooDeep", in: deep, bundleID: "com.test.deep")
         try Fixtures.makeApp("NoID", in: a, bundleID: nil)
-        // b: a symlink to an app that lives elsewhere (how ~/Applications holds Menubarn apps),
+        // b: a symlink to an app that lives elsewhere (how ~/Applications holds Menumon apps),
         // a duplicate of Real by bundle id, and a broken link.
         let linked = try Fixtures.makeApp("Linked", in: elsewhere, bundleID: "com.test.linked")
         try fm.createSymbolicLink(at: b.appending(path: "Linked.app"), withDestinationURL: linked)
