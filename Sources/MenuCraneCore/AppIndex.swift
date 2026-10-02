@@ -7,7 +7,7 @@ public struct AppEntry: Equatable, Sendable {
     public let name: String
     /// The app itself, symlinks resolved: what is opened and what the icon is read from.
     public let url: URL
-    /// Where the index found it — for a Menubarn app, the link in ~/Applications rather than
+    /// Where the index found it — for a Menumon app, the link in ~/Applications rather than
     /// the build folder it points into. Shown under the name and revealed in Finder.
     public let location: URL
     public let bundleID: String?
