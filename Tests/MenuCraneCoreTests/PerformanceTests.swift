@@ -8,9 +8,10 @@ import Darwin
 final class PerformanceTests: XCTestCase {
     func testOneKeystrokeUnderFiveMilliseconds() throws {
         // The budget is for typing at interactive priority. A background job
-        // (e.g. a LaunchAgent with ProcessType Background) is held to the
+        // (a LaunchAgent with ProcessType Background runs at background QoS; taskpolicy -b
+        // sets the Darwin background flag) is held to the
         // efficiency cores and runs this 3-4x slower, so the number means nothing.
-        if getpriority(PRIO_DARWIN_PROCESS, 0) != 0 {
+        if getpriority(PRIO_DARWIN_PROCESS, 0) != 0 || qos_class_self().rawValue <= QOS_CLASS_UTILITY.rawValue {
             throw XCTSkip("running at background priority; the keystroke budget is measured at interactive priority")
         }
         let dir = FileManager.default.temporaryDirectory.appending(path: "menucrane-perf-\(UUID().uuidString)")
