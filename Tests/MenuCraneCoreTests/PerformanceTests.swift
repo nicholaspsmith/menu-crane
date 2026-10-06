@@ -3,9 +3,16 @@
 
 import XCTest
 import MenuCraneCore
+import Darwin
 
 final class PerformanceTests: XCTestCase {
     func testOneKeystrokeUnderFiveMilliseconds() throws {
+        // The budget is for typing at interactive priority. A background job
+        // (e.g. a LaunchAgent with ProcessType Background) is held to the
+        // efficiency cores and runs this 3-4x slower, so the number means nothing.
+        if getpriority(PRIO_DARWIN_PROCESS, 0) != 0 {
+            throw XCTSkip("running at background priority; the keystroke budget is measured at interactive priority")
+        }
         let dir = FileManager.default.temporaryDirectory.appending(path: "menucrane-perf-\(UUID().uuidString)")
         for i in 0..<150 {
             let contents = dir.appending(path: "App Number \(i).app/Contents")
