@@ -8,6 +8,13 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.1.0] - 2026-10-06
+
+- ⌘↩ hands the query to Spotlight: Menu Crane closes and macOS's own Spotlight panel opens with exactly what you typed, for its richer results. It needs Menu Crane allowed in Accessibility; without it, the query stays put and the footer says why.
+- A row's alternate action (reveal an app in Finder, copy a conversion with its unit) moves from ⌘↩ to ⌥↩.
+- Settings submenu: the Settings window (now "Hotkey, Units & Emoji…"), Reset Panel Position, Icon, Start at Login and the version live under Settings ▸, as in every Menumon app.
+- New app icon: Mendoza as he looks in the menu bar.
+
 ## [1.0.2] - 2026-09-28
 
 - App results show where the app is installed (e.g. `~/Applications/VidSnatch.app`) instead of the build folder a linked app points into, and ⌘↩ reveals it there.

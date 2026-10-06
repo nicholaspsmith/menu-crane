@@ -100,7 +100,7 @@ struct FooterView: View {
 
     var body: some View {
         HStack {
-            Text("⌘, for settings")
+            Text(leftHint)
             Spacer()
             Text(state.footerMessage ?? hint)
         }
@@ -108,6 +108,12 @@ struct FooterView: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 14)
         .frame(height: PanelMetrics.footerHeight)
+    }
+
+    /// ⌘↩ hands a typed query to Spotlight; with nothing typed, the settings hint.
+    var leftHint: String {
+        state.mode == .main && !state.query.trimmingCharacters(in: .whitespaces).isEmpty
+            ? "⌘↩ Search in Spotlight" : "⌘, for settings"
     }
 
     var hint: String {

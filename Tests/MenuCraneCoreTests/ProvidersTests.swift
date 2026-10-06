@@ -42,7 +42,7 @@ final class ProvidersTests: XCTestCase {
         guard case .open(let url) = r.action else { return XCTFail("expected open") }
         XCTAssertEqual(r.alternate, .reveal(url))
         XCTAssertEqual(r.usageKey, "com.apple.Safari")
-        XCTAssertEqual(r.footerHint, "↩ Open   ⌘↩ Show in Finder")
+        XCTAssertEqual(r.footerHint, "↩ Open   ⌥↩ Show in Finder")
     }
 
     func testMathIsPinnedAndCopiesBareNumber() throws {
@@ -59,7 +59,7 @@ final class ProvidersTests: XCTestCase {
         XCTAssertEqual(r.subtitle, "72 °F → °C")
         XCTAssertEqual(r.action, .copy("22.2222"))
         XCTAssertEqual(r.alternate, .copy("22.2222 °C"))
-        XCTAssertEqual(r.footerHint, "↩ Copy   ⌘↩ Copy with unit")
+        XCTAssertEqual(r.footerHint, "↩ Copy   ⌥↩ Copy with unit")
     }
 
     func testEAndEmojiPinTheEmojiCommand() {
