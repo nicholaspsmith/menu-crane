@@ -3,6 +3,7 @@
 
 import AppKit
 import Combine
+import HotkeyKit
 import MenuCraneCore
 import SwiftUI
 
@@ -13,6 +14,7 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     private let performer: ActionPerformer
     private let index: AppIndex
     private let icons = IconCache()
+    private let spotlight = SpotlightLauncher()
     private var hosting: NSHostingView<AnyView>!
     private var cancellables = Set<AnyCancellable>()
     private var anchorTop: CGFloat = 0
@@ -29,6 +31,8 @@ final class PanelController: NSObject, NSTextFieldDelegate {
     var onVisibilityChange: ((Bool) -> Void)?
     var onGrab: (() -> Void)?
     var onOpenSettings: (() -> Void)?
+    /// Menu Crane's own hotkey, so ⌘↩ can refuse to post a Spotlight shortcut that is the same keys.
+    var menuCraneTrigger: () -> Trigger = { HotkeySettings.defaultTrigger }
     /// Called first thing on `show()`, so in-place hand edits of aliases.json are picked up.
     var onShow: (() -> Void)?
     /// Emoji-mode key equivalents (⌘K, ⌘⇧S), installed by Task 15.
@@ -193,6 +197,8 @@ final class PanelController: NSObject, NSTextFieldDelegate {
             state.moveGrid(dx: 1, dy: 0); return true
         case #selector(NSResponder.insertNewline(_:)):
             activateSelection(alternate: false); return true
+        case #selector(NSResponder.insertNewlineIgnoringFieldEditor(_:)):   // ⌥↩
+            activateSelection(alternate: true); return true
         case #selector(NSResponder.cancelOperation(_:)):
             if emojiUI.editing != nil { emojiUI.editing = nil; focusField(); return true }
             switch state.escape() {
@@ -212,7 +218,8 @@ final class PanelController: NSObject, NSTextFieldDelegate {
         let mods = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
         guard mods.contains(.command) else { return false }
         if (e.keyCode == 36 || e.keyCode == 76) && !mods.contains(.shift) {   // ⌘↩
-            activateSelection(alternate: true); return true
+            if state.mode == .main { searchInSpotlight() } else { activateSelection(alternate: true) }
+            return true
         }
         if e.keyCode == 43 && !mods.contains(.shift) {                          // ⌘,
             hide(); onOpenSettings?(); return true
@@ -264,6 +271,26 @@ final class PanelController: NSObject, NSTextFieldDelegate {
             performer.copy(text)
             if item.kind == .emoji, let base = item.usageKey { performer.recordEmoji(base) }
             flashCopied()
+        }
+    }
+
+    /// ⌘↩: close the panel and hand exactly what's typed to the system Spotlight panel. If that
+    /// can't happen (no Accessibility, shortcut off, panel never shows) the query stays here with
+    /// the reason in the footer.
+    func searchInSpotlight() {
+        let query = state.query
+        switch spotlight.preflight(menuCraneTrigger: menuCraneTrigger()) {
+        case .failure(let failure):
+            state.footerMessage = failure.message
+        case .success(let shortcut):
+            hide()
+            spotlight.open(with: shortcut, typing: query) { [weak self] failure in
+                guard let self, let failure else { return }
+                self.show()
+                self.state.query = query
+                self.syncField()
+                self.state.footerMessage = failure.message
+            }
         }
     }
 

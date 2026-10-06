@@ -39,7 +39,7 @@ public struct ResultItem: Equatable, Identifiable, Sendable {
     public let score: Double
     public let action: ResultAction
     public let alternate: ResultAction?
-    /// Footer wording for the ⌘↩ action when `alternate.label` is not specific enough.
+    /// Footer wording for the ⌥↩ action when `alternate.label` is not specific enough.
     public let alternateLabel: String?
     /// App key or base emoji to record in UsageStore when this item is used.
     public let usageKey: String?
@@ -52,10 +52,10 @@ public struct ResultItem: Equatable, Identifiable, Sendable {
         self.alternateLabel = alternateLabel; self.usageKey = usageKey
     }
 
-    /// "↩ Open  ⌘↩ Show in Finder"
+    /// "↩ Open   ⌥↩ Show in Finder"
     public var footerHint: String {
         var s = "↩ \(action.label)"
-        if let alternate { s += "   ⌘↩ \(alternateLabel ?? alternate.label)" }
+        if let alternate { s += "   ⌥↩ \(alternateLabel ?? alternate.label)" }
         return s
     }
 }

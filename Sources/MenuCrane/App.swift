@@ -192,6 +192,7 @@ final class App: NSObject, NSApplicationDelegate {
         settingsModel.onTone = { [weak self] t in self?.panel.emojiUI.tone = t }
         settings = SettingsWindowController(model: settingsModel)
         panel.onOpenSettings = { [weak self] in self?.openSettings() }
+        panel.menuCraneTrigger = { [weak self] in self?.trigger ?? HotkeySettings.defaultTrigger }
     }
 
     /// Retry a hotkey another app was holding (e.g. right after Raycast quits).
@@ -207,25 +208,21 @@ final class App: NSObject, NSApplicationDelegate {
             menu.addItem(warn)
         }
         menu.addItem(menuItem("Open Menu Crane (\(TriggerText.describe(trigger)))", #selector(openPanel)))
-        menu.addItem(menuItem("Settings…", #selector(openSettings), key: ","))
-        menu.addItem(menuItem("Reset Panel Position", #selector(resetPanelPosition)))
-        menu.addItem(.separator())
-        let login = menuItem("Start at Login", #selector(toggleLogin))
-        login.state = LoginItem.isEnabled ? .on : .off
-        menu.addItem(login)
-        let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
-        let sub = NSMenu()
-        for (title, style) in [("Crane", "crane"), ("Dot", "dot")] {
-            let item = menuItem(title, #selector(chooseIcon(_:)))
-            item.representedObject = style
-            item.state = Preferences.iconStyle == style ? .on : .off
-            sub.addItem(item)
-        }
-        icon.submenu = sub
-        menu.addItem(icon)
-        menu.addItem(.separator())
-        menu.addItem(AppVersion.menuItem())
-        menu.addItem(menuItem("Quit Menu Crane", #selector(quit), key: "q"))
+        SettingsMenu.addFooter(to: menu, appName: "Menu Crane", items: { [self] settings in
+            settings.addItem(menuItem("Hotkey, Units & Emoji…", #selector(openSettings), key: ","))
+            settings.addItem(menuItem("Reset Panel Position", #selector(resetPanelPosition)))
+            // Crane or dot: this app's own picker, not AppearanceMenu.
+            let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
+            let sub = NSMenu()
+            for (title, style) in [("Crane", "crane"), ("Dot", "dot")] {
+                let item = menuItem(title, #selector(chooseIcon(_:)))
+                item.representedObject = style
+                item.state = Preferences.iconStyle == style ? .on : .off
+                sub.addItem(item)
+            }
+            icon.submenu = sub
+            settings.addItem(icon)
+        })
     }
 
     @objc private func chooseIcon(_ sender: NSMenuItem) {
@@ -248,6 +245,4 @@ final class App: NSObject, NSApplicationDelegate {
     /// Forget the dragged-to position; the next summon opens centered a third down the screen
     /// under the mouse.
     @objc private func resetPanelPosition() { PanelPlacement.clear(from: .standard) }
-    @objc private func toggleLogin() { LoginItem.toggle() }
-    @objc private func quit() { NSApp.terminate(nil) }
 }
