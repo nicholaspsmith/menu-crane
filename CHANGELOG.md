@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.1.1] - 2026-10-06
+
+- Ticking a checkbox in the menu no longer closes it: Settings ▸ Start at Login stays open when you turn it on or off
+
 ## [1.1.0] - 2026-10-06
 
 - ⌘↩ hands the query to Spotlight: Menu Crane closes and macOS's own Spotlight panel opens with exactly what you typed, for its richer results. It needs Menu Crane allowed in Accessibility; without it, the query stays put and the footer says why.
