@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.4.0] - 2026-10-08
+
+- The crane now performs a grab animation once a minute, opening and closing its bucket before returning to its resting position.
+
 ## [1.3.1] - 2026-10-08
 
 - Fixes 1.3.0 crashing at launch (the grab animation was consulted before it existed)
