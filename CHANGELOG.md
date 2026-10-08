@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.4.0] - 2026-10-08
+
+- The crane now performs a grab animation once a minute, opening and closing its bucket before returning to its resting position.
+
 ## [1.3.0] - 2026-10-08
 
 - Mendoza animates like the other Menumon mascots: twice a minute, while idle, he drops his bucket open, snaps it shut and lifts it home, taking his turn in the cue after Homestead. Skipped under Reduce Motion and with the dot icon
