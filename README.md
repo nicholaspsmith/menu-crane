@@ -93,6 +93,12 @@ Mendoza the crane has four states:
 - **Grabbed** — a happy grab for about half a second after a copy or launch.
 - **Miss** — puzzled, when nothing matches the query.
 
+<p align="center"><img src="docs/animation.png" alt="Mendoza dropping his bucket open, snapping it shut and lifting it back"></p>
+
+Twice a minute, while idle, Mendoza drops his bucket open, snaps it shut and
+lifts it home, taking his turn after the other Menumon mascots (StatusItemKit's
+`MinuteCue`); not under Reduce Motion, and not as the dot.
+
 **Settings ▸ Icon ▸ Dot** switches to a plain dot.
 
 ## Why not a Spotlight extension?

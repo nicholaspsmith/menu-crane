@@ -29,6 +29,9 @@ final class App: NSObject, NSApplicationDelegate {
     /// grab or a hide/show, so a stale revert never fires after the mood's already moved on.
     private var grabRevert: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
+    /// Mendoza's turn in the minute cue: a grab while idle, with the crane showing.
+    private var minuteCue: MinuteCue!
+    private var grab: IconAnimation!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         makeServices()
@@ -43,6 +46,14 @@ final class App: NSObject, NSApplicationDelegate {
         yieldClient.start()
         refreshIcon()
         wireMoods()
+        grab = IconAnimation(duration: CharacterIcon.menuCraneGrabDuration, frame: { [weak self] t in
+            self?.status.setIcon(CharacterIcon.menuCrane(state: .idle, grab: t))
+        }, completion: { [weak self] in self?.refreshIcon() })
+        minuteCue = MinuteCue { [weak self] in
+            guard let self, self.mood == .idle, Preferences.iconStyle != "dot" else { return }
+            self.grab.start()
+        }
+        minuteCue.start()
 
         hotkey.onPress = { [weak self] in self?.openPanel() }
         hotkey.register(trigger)
@@ -50,10 +61,12 @@ final class App: NSObject, NSApplicationDelegate {
 
     private func setMood(_ m: CharacterIcon.CraneState) {
         mood = m
+        grab.cancel()
         refreshIcon()
     }
 
     private func refreshIcon() {
+        guard !grab.isRunning else { return }   // the grab's own frames are drawing the icon
         if Preferences.iconStyle == "dot" {
             status.setIcon(Self.dot)
         } else {
