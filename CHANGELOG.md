@@ -12,6 +12,10 @@ Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 
 - The crane now performs a grab animation once a minute, opening and closing its bucket before returning to its resting position.
 
+## [1.3.1] - 2026-10-08
+
+- Fixes 1.3.0 crashing at launch (the grab animation was consulted before it existed)
+
 ## [1.3.0] - 2026-10-08
 
 - Mendoza animates like the other Menumon mascots: twice a minute, while idle, he drops his bucket open, snaps it shut and lifts it home, taking his turn in the cue after Homestead. Skipped under Reduce Motion and with the dot icon
