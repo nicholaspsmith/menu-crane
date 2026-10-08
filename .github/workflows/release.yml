@@ -17,4 +17,6 @@ permissions:
 
 jobs:
   release:
-    uses: nicholaspsmith/StatusItemKit/.github/workflows/menumon-release.yml@main
+    uses: nicholaspsmith/StatusItemKit/.github/workflows/menumon-release.yml@launch-smoke
+    with:
+      kit-ref: launch-smoke

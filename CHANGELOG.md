@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.4.1] - 2026-10-08
+
+- Test of the launch check only; this PR is never merged
+
 ## [1.3.0] - 2026-10-08
 
 - Mendoza animates like the other Menumon mascots: twice a minute, while idle, he drops his bucket open, snaps it shut and lifts it home, taking his turn in the cue after Homestead. Skipped under Reduce Motion and with the dot icon
