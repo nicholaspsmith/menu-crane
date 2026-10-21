@@ -2,7 +2,7 @@
 
 <p align="center"><img src="docs/mascot.png" width="160" alt="Mendoza, Menu Crane's menu-bar character, on its app icon"></p>
 
-**Version 1.1.0** · [Changelog](https://github.com/nicholaspsmith/menu-crane/releases)
+**Version 1.10.1** · [Changelog](https://github.com/nicholaspsmith/menu-crane/releases)
 
 A ⌘Space launcher for macOS that does four things: open apps, do simple
 arithmetic, convert units, and find emoji; an alternative to Raycast for just
