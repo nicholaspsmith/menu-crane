@@ -79,8 +79,8 @@ the answer with its unit.
 
 **Menu.** **Open Menu Crane** (with the current hotkey), then **Settings ▸**:
 **Hotkey, Units & Emoji…** (⌘, — the Settings window), **Reset Panel
-Position**, **Icon ▸** (Crane / Dot), **Start at Login** and the version; then
-**Quit Menu Crane** (⌘Q).
+Position**, **Start at Login** and the version; then **Icon ▸** (Crane / Dot)
+and **Quit Menu Crane** (⌘Q).
 
 ## The menu-bar crane
 
@@ -99,7 +99,7 @@ Twice a minute, while idle, Mendoza drops his bucket open, snaps it shut and
 lifts it home, taking his turn after the other Menumon mascots (StatusItemKit's
 `MinuteCue`); not under Reduce Motion, and not as the dot.
 
-**Settings ▸ Icon ▸ Dot** switches to a plain dot.
+**Icon ▸ Dot** switches to a plain dot.
 
 ## Why not a Spotlight extension?
 

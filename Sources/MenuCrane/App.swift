@@ -226,7 +226,9 @@ final class App: NSObject, NSApplicationDelegate {
         SettingsMenu.addFooter(to: menu, appName: "Menu Crane", items: { [self] settings in
             settings.addItem(menuItem("Hotkey, Units & Emoji…", #selector(openSettings), key: ","))
             settings.addItem(menuItem("Reset Panel Position", #selector(resetPanelPosition)))
-            // Crane or dot: this app's own picker, not AppearanceMenu.
+        }, belowSettings: { [self] menu in
+            // Crane or dot: this app's own picker, not AppearanceMenu, in the
+            // main menu right below Settings.
             let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
             let sub = NSMenu()
             for (title, style) in [("Crane", "crane"), ("Dot", "dot")] {
@@ -236,7 +238,7 @@ final class App: NSObject, NSApplicationDelegate {
                 sub.addItem(item)
             }
             icon.submenu = sub
-            settings.addItem(icon)
+            menu.addItem(icon)
         })
     }
 
